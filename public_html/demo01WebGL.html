@@ -1,0 +1,53 @@
+<!--
+To change this template, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Ellis' my first WebGL demo</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      
+    </head>
+    <body>
+        <div>TODO write content</div>
+        <canvas id ="webGL-canvas" style="border: none;"
+                width="800" height="600" ></canvas>
+        <script src="build/gl-matrix-min.js"></script>
+        <script src="build/Maximus.js"></script>
+        <script id="shader-vs" type="x-shader/x-vertex">
+            attribute vec3 aVertexPosition;
+            
+            uniform mat4 uMVMatrix;
+            uniform mat4 uPMatrix;
+            
+            void main(void) {
+                gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+            }
+        </script>
+        <script id="shader-fs" type="x-shader/x-fragment">
+            precision mediump float;
+            
+            void main(void) {
+                gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+            }
+        </script>
+        <script>
+            init();
+            
+            function init() {
+                var canvas = document.getElementById("webGL-canvas");
+                var render = new Maximus.WebGLRenderer(); 
+                render.initGL(canvas);
+                render.setClearColor( 0,0,0,1 );
+                
+                render.initShaders( document.getElementById("shader-vs")
+                                     , document.getElementById("shader-fs") );
+                render.initBuffers();
+                                
+                render.drawScene();
+            };            
+            
+        </script>
+    </body>
+</html>
