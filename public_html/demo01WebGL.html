@@ -55,6 +55,9 @@ and open the template in the editor.
         </script>
         <script>
             var renderer;
+            var directionalLight;
+            var cube;
+            var redLambertMtr;
             var worldMtx = mat4.create();
             var rotateAngle = 0;
             
@@ -65,14 +68,18 @@ and open the template in the editor.
                 var canvas = document.getElementById("webGL-canvas");
                 renderer = new Maximus.WebGLRenderer(); 
                 renderer.initGL(canvas);
-                renderer.setClearColor( 0,0,1,1 );
+                renderer.setClearColor( 0,0,0,1 );
                 
                 renderer.initShaders( document.getElementById("shader-vs")
                                      , document.getElementById("shader-fs") );
-                renderer.initBuffers();        
                 
                 mat4.identity( worldMtx );
-               
+                
+                directionalLight = new Maximus.DirectionalLight( [1.0,1.0,1.0], 1.0, [0.0,0.0,-1.0] );
+                redLambertMtr = new Maximus.LambertMaterial( [1.0, 0.0, 0.0, 1.0] );
+                cube = new Maximus.Cube();
+                cube.init( renderer, redLambertMtr );              
+                
             };        
           
             function updateFrame() {
@@ -87,8 +94,9 @@ and open the template in the editor.
                 render( worldMtx );
             }
             
-            function render( mtx ) {                
-                renderer.drawScene( mtx );
+            function render( mtx ) {    
+                renderer.setLight( directionalLight );
+                renderer.drawScene( mtx, cube );
             }
             
         </script>

@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-var Maximus = { REVISION: '66' };
+var Maximus = { REVISION: '1' };
 
 Maximus.Math = {
     
@@ -16,6 +16,118 @@ Maximus.Math = {
 
         };
     }()
+    
+};
+
+Maximus.LambertMaterial = function( color ) {
+    var _color = color;
+    
+    this.getColor = function() {
+        return _color;  
+    };
+};
+
+Maximus.DirectionalLight = function( color, intensity, direction ) {
+    
+    var _color = color;
+    var _intensity = intensity;
+    var _direction = direction;
+    
+    this.getDirection = function() {
+        return _direction;
+    };
+    
+    this.getColor = function() {
+        return _color;
+    };
+    
+    this.getIntensity = function() {
+        return _intensity;
+    };
+};
+
+Maximus.Cube = function() {
+    var _cubeVertexBuffer;
+    var _cubeIndexBuffer;
+    var _material;
+    
+    this.init = function( renderer, mtr ) {
+        _material = mtr;
+        var gl = renderer.getContext();
+        
+        _cubeVertexBuffer = gl.createBuffer();
+        gl.bindBuffer( gl.ARRAY_BUFFER, _cubeVertexBuffer );
+
+        var vertices = [
+          // Front face
+          -1.0, -1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0,  
+          1.0, -1.0, 1.0,  0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0,
+          1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0,
+          -1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0,
+          
+          // Back face
+          -1.0, -1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, -1.0,  
+          -1.0, 1.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, -1.0,
+          1.0, 1.0, -1.0,  0.0, 0.0, 1.0, 1.0, 0.0, 0.0, -1.0,
+          1.0, -1.0, -1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, -1.0,
+          
+          // Top face
+          -1.0, 1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0,  
+          -1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0,
+          1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0,
+          1.0, 1.0, -1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0,
+          
+          // Bottom face
+          -1.0, -1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0,
+          1.0, -1.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, -1.0, 0.0,
+          1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, -1.0, 0.0,
+          -1.0, -1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, -1.0, 0.0,
+          
+          // Right face
+          1.0, -1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0,
+          1.0, 1.0, -1.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0,
+          1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0,
+          1.0, -1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0,
+          
+          // Left face
+          -1.0, -1.0, -1.0, 1.0, 0.0, 0.0, 1.0, -1.0, 0.0, 0.0,
+          -1.0, -1.0, 1.0, 0.0, 1.0, 0.0, 1.0, -1.0, 0.0, 0.0,
+          -1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, -1.0, 0.0, 0.0,
+          -1.0, 1.0, -1.0, 1.0, 1.0, 0.0, 1.0, -1.0, 0.0, 0.0
+        ];
+
+        gl.bufferData( gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW );
+        _cubeVertexBuffer.itemSize = 10;
+        _cubeVertexBuffer.numItems = 24;
+        
+        _cubeIndexBuffer = gl.createBuffer();
+        gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, _cubeIndexBuffer );
+        var cubeIndices = [
+            0, 1, 2,    0, 2, 3,
+            4, 5, 6,    4, 6, 7,
+            8, 9, 10,   8, 10, 11,
+            12, 13, 14, 12, 14, 15,
+            16, 17, 18, 16, 18, 19,
+            20, 21, 22, 20, 22, 23
+        ];
+        
+        gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(cubeIndices), gl.STATIC_DRAW );
+        _cubeIndexBuffer.itemSize = 1;
+        _cubeIndexBuffer.numItems = 36;
+        
+    };
+    
+    this.getVertexBuffer = function() {
+        return _cubeVertexBuffer;
+    };
+    
+    this.getIndexBuffer = function() {
+        return _cubeIndexBuffer;
+    };   
+    
+    this.getMaterial = function() {
+        return _material;
+    };
     
 };
 
@@ -116,112 +228,31 @@ Maximus.WebGLRenderer = function() {
         shaderProgram.lightDir = _gl.getUniformLocation(shaderProgram, "lightDir");
         shaderProgram.lightColor = _gl.getUniformLocation(shaderProgram, "lightColor");
     };
-
-    var mvMatrix = mat4.create();
-    var pMatrix = mat4.create();
-    var viewMtx = mat4.create();
-    var matDiffuse = new Float32Array( [ 1.0, 0.0, 0.0, 1.0 ] );
-    mat4.identity( viewMtx );
-    
-    function _setMatrixUniform() {
-        _gl.uniformMatrix4fv( shaderProgram.pMatrixUniform, false, pMatrix );
-        _gl.uniformMatrix4fv( shaderProgram.mvMatrixUniform, false, mvMatrix );    
-    }
-    
-    function _setMaterialColor() {
-        _gl.uniform4fv( shaderProgram.matDiffuse, matDiffuse );
-    }
-    
-    var lightDir = new Float32Array( [ 0.0, 0.0, 1.0, 0.0 ] );
-    var lightColor = new Float32Array( [ 1, 1, 1, 1.0 ] );
-    
-    function _setLight() {
-        _gl.uniform4fv( shaderProgram.lightDir, lightDir );
-        _gl.uniform4fv( shaderProgram.lightColor, lightColor );
-    }
-
-    var cubeVertexBuffer;
-    var cubeIndexBuffer;
-    this.initBuffers = function() {
-        cubeVertexBuffer = _gl.createBuffer();
-        _gl.bindBuffer( _gl.ARRAY_BUFFER, cubeVertexBuffer );
-
-//        var vertices = [
-//          1.0, 1.0, 0.0,
-//          -1.0, 1.0, 0.0,
-//          1.0, -1.0, 0.0,
-//          -1.0, -1.0, 0.0
-//        ];
-
-        var vertices = [
-          // Front face
-          -1.0, -1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0,  
-          1.0, -1.0, 1.0,  0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0,
-          1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0,
-          -1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0,
-          
-          // Back face
-          -1.0, -1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, -1.0,  
-          -1.0, 1.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, -1.0,
-          1.0, 1.0, -1.0,  0.0, 0.0, 1.0, 1.0, 0.0, 0.0, -1.0,
-          1.0, -1.0, -1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, -1.0,
-          
-          // Top face
-          -1.0, 1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0,  
-          -1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0,
-          1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0,
-          1.0, 1.0, -1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0,
-          
-          // Bottom face
-          -1.0, -1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0,
-          1.0, -1.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, -1.0, 0.0,
-          1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, -1.0, 0.0,
-          -1.0, -1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, -1.0, 0.0,
-          
-          // Right face
-          1.0, -1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0,
-          1.0, 1.0, -1.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0,
-          1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0,
-          1.0, -1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0,
-          
-          // Left face
-          -1.0, -1.0, -1.0, 1.0, 0.0, 0.0, 1.0, -1.0, 0.0, 0.0,
-          -1.0, -1.0, 1.0, 0.0, 1.0, 0.0, 1.0, -1.0, 0.0, 0.0,
-          -1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, -1.0, 0.0, 0.0,
-          -1.0, 1.0, -1.0, 1.0, 1.0, 0.0, 1.0, -1.0, 0.0, 0.0
-        ];
-
-        _gl.bufferData( _gl.ARRAY_BUFFER, new Float32Array(vertices), _gl.STATIC_DRAW );
-        cubeVertexBuffer.itemSize = 10;
-        cubeVertexBuffer.numItems = 24;
+ 
+     this.setLight = function( directionalLight ) {
         
-        cubeIndexBuffer = _gl.createBuffer();
-        _gl.bindBuffer( _gl.ELEMENT_ARRAY_BUFFER, cubeIndexBuffer );
-        var cubeIndices = [
-            0, 1, 2,    0, 2, 3,
-            4, 5, 6,    4, 6, 7,
-            8, 9, 10,   8, 10, 11,
-            12, 13, 14, 12, 14, 15,
-            16, 17, 18, 16, 18, 19,
-            20, 21, 22, 20, 22, 23
-        ];
+        var lightDir = directionalLight.getDirection();
+        var lightColor = directionalLight.getColor();
+        var intensity = directionalLight.getIntensity();
         
-        _gl.bufferData( _gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(cubeIndices), _gl.STATIC_DRAW );
-        cubeIndexBuffer.itemSize = 1;
-        cubeIndexBuffer.numItems = 36;
+        _gl.uniform4fv( shaderProgram.lightDir, 
+        [-lightDir[0], -lightDir[1], -lightDir[2], 1.0] );
+        _gl.uniform4fv( shaderProgram.lightColor, 
+        [lightColor[0] * intensity, lightColor[1] * intensity, lightColor[2] * intensity, 1.0] );
+    };
+    
+    this.getContext = function() {
+        return _gl;
     };
 
-    this.drawScene = function( worldMtx ) {
+    this.drawScene = function( worldMtx, geometry ) {
         _gl.viewport( 0, 0, _gl.viewportWidth, _gl.viewportHeight );
         _gl.clear( _gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT );
 
         mat4.perspective( 45, _gl.viewportWidth / _gl.viewportHeight, 0.1, 100.0, pMatrix );
-
-       // mat4.identity( mvMatrix );
         mat4.multiply( worldMtx, viewMtx, mvMatrix );
-     //   mat4.translate( mvMatrix, [0.0, 0.0, -7.0] );
-
-        _gl.bindBuffer( _gl.ARRAY_BUFFER, cubeVertexBuffer );
+    
+        _gl.bindBuffer( _gl.ARRAY_BUFFER, geometry.getVertexBuffer() );
         _gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3,
                         _gl.FLOAT, false, 4 * 10, 0 );
         _gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, 4,
@@ -229,12 +260,25 @@ Maximus.WebGLRenderer = function() {
         _gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute, 3,
                         _gl.FLOAT, false, 4 * 10, (3 + 4) * 4 );
                    
-        _gl.bindBuffer( _gl.ELEMENT_ARRAY_BUFFER, cubeIndexBuffer );
+        _gl.bindBuffer( _gl.ELEMENT_ARRAY_BUFFER, geometry.getIndexBuffer() );
         _setMatrixUniform();
-        _setMaterialColor();
-        _setLight();
-       // _gl.drawArrays( _gl.TRIANGLE_STRIP, 0, cubeVertexBuffer.numItems );
-        _gl.drawElements( _gl.TRIANGLES, cubeIndexBuffer.numItems, _gl.UNSIGNED_SHORT, 0 );
+        _setMaterialColor( geometry.getMaterial().getColor() );
+      
+        _gl.drawElements( _gl.TRIANGLES, geometry.getIndexBuffer().numItems, _gl.UNSIGNED_SHORT, 0 );
     };
 
+    var mvMatrix = mat4.create();
+    var pMatrix = mat4.create();
+    var viewMtx = mat4.create();
+    mat4.identity( viewMtx );
+    
+    function _setMatrixUniform() {
+        _gl.uniformMatrix4fv( shaderProgram.pMatrixUniform, false, pMatrix );
+        _gl.uniformMatrix4fv( shaderProgram.mvMatrixUniform, false, mvMatrix );    
+    }
+    
+    function _setMaterialColor( color ) {
+        _gl.uniform4fv( shaderProgram.matDiffuse, color );
+    }
+       
 };
