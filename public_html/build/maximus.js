@@ -110,16 +110,34 @@ Maximus.WebGLRenderer = function() {
        
         shaderProgram.pMatrixUniform = _gl.getUniformLocation(shaderProgram, "uPMatrix");
         shaderProgram.mvMatrixUniform = _gl.getUniformLocation(shaderProgram, "uMVMatrix");
+        
+        // Lambert lighting
+        shaderProgram.matDiffuse = _gl.getUniformLocation(shaderProgram, "matDiffuse");
+        shaderProgram.lightDir = _gl.getUniformLocation(shaderProgram, "lightDir");
+        shaderProgram.lightColor = _gl.getUniformLocation(shaderProgram, "lightColor");
     };
 
     var mvMatrix = mat4.create();
     var pMatrix = mat4.create();
     var viewMtx = mat4.create();
+    var matDiffuse = new Float32Array( [ 1.0, 0.0, 0.0, 1.0 ] );
     mat4.identity( viewMtx );
     
-    function setMatrixUniform() {
+    function _setMatrixUniform() {
         _gl.uniformMatrix4fv( shaderProgram.pMatrixUniform, false, pMatrix );
         _gl.uniformMatrix4fv( shaderProgram.mvMatrixUniform, false, mvMatrix );    
+    }
+    
+    function _setMaterialColor() {
+        _gl.uniform4fv( shaderProgram.matDiffuse, matDiffuse );
+    }
+    
+    var lightDir = new Float32Array( [ 0.0, 0.0, 1.0, 0.0 ] );
+    var lightColor = new Float32Array( [ 1, 1, 1, 1.0 ] );
+    
+    function _setLight() {
+        _gl.uniform4fv( shaderProgram.lightDir, lightDir );
+        _gl.uniform4fv( shaderProgram.lightColor, lightColor );
     }
 
     var cubeVertexBuffer;
@@ -212,7 +230,9 @@ Maximus.WebGLRenderer = function() {
                         _gl.FLOAT, false, 4 * 10, (3 + 4) * 4 );
                    
         _gl.bindBuffer( _gl.ELEMENT_ARRAY_BUFFER, cubeIndexBuffer );
-        setMatrixUniform();
+        _setMatrixUniform();
+        _setMaterialColor();
+        _setLight();
        // _gl.drawArrays( _gl.TRIANGLE_STRIP, 0, cubeVertexBuffer.numItems );
         _gl.drawElements( _gl.TRIANGLES, cubeIndexBuffer.numItems, _gl.UNSIGNED_SHORT, 0 );
     };

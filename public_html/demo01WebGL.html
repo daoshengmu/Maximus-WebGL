@@ -28,8 +28,9 @@ and open the template in the editor.
             
             void main(void) {
                 gl_Position = uPMatrix * uMVMatrix * vec4(POSITION, 1.0);
+                
                 outCOLOR0 = COLOR;
-                outNORMAL = NORMAL;
+                outNORMAL = (uMVMatrix * vec4( NORMAL, 0.0 )).xyz;
             }
         </script>
         <script id="shader-fs" type="x-shader/x-fragment">
@@ -37,9 +38,19 @@ and open the template in the editor.
             
             varying vec4 outCOLOR0;
             varying vec3 outNORMAL;
+            uniform vec4 matDiffuse;
+            uniform vec4 lightDir;
+            uniform vec4 lightColor;
             
             void main(void) {
-                gl_FragColor = outCOLOR0;
+                vec4 pixelColor;
+                
+                pixelColor.w = matDiffuse.w * outCOLOR0.w;
+                vec3 vNormal = normalize( outNORMAL );
+                float lightAmount = dot( vNormal, vec3(lightDir) );  
+                
+                pixelColor.xyz = matDiffuse.xyz * lightColor.xyz * lightAmount;
+                gl_FragColor = pixelColor;
             }
         </script>
         <script>
@@ -70,7 +81,7 @@ and open the template in the editor.
                 mat4.identity( worldMtx );
                 mat4.translate( worldMtx, [0.0, 0.0, -7.0] );
                 
-                rotateAngle += 5;           
+                rotateAngle += 5;         
                 mat4.rotateY( worldMtx, Maximus.Math.degToRad( rotateAngle ), worldMtx );
 
                 render( worldMtx );
