@@ -23,12 +23,12 @@ and open the template in the editor.
             
            function init() {
                 renderer = new THREE.WebGLRenderer();
-                renderer.setSize( 800, 600 );
+                renderer.setSize( 400, 300 );
                 renderer.setClearColor( 0x000000, 1.0 );
                 document.body.appendChild( renderer.domElement );
                 
                 scene = new THREE.Scene();
-                camera = new THREE.PerspectiveCamera( 35, 800/600, 0.1, 10000 );
+                camera = new THREE.PerspectiveCamera( 45, 400/300, 0.1, 10000 );
                 
                 camera.position.set( 0, 0, 20 );
                 camera.lookAt( scene.position );
