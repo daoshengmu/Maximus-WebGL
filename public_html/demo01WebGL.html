@@ -18,10 +18,10 @@ and open the template in the editor.
         <script id="shader-vs" type="x-shader/x-vertex">
             attribute vec3 POSITION;
             attribute vec4 COLOR;
-            attribute vec4 NORMAL;
+            attribute vec3 NORMAL;
             
             varying vec4 outCOLOR0;
-            varying vec4 outNORMAL;
+            varying vec3 outNORMAL;
             
             uniform mat4 uMVMatrix;
             uniform mat4 uPMatrix;
@@ -36,27 +36,49 @@ and open the template in the editor.
             precision mediump float;
             
             varying vec4 outCOLOR0;
-            varying vec4 outNORMAL;
+            varying vec3 outNORMAL;
             
             void main(void) {
-                gl_FragColor = vec4(1,1,1,1);
+                gl_FragColor = outCOLOR0;
             }
         </script>
         <script>
+            var renderer;
+            var worldMtx = mat4.create();
+            var rotateAngle = 0;
+            
             init();
+            updateFrame();
             
             function init() {
                 var canvas = document.getElementById("webGL-canvas");
-                var render = new Maximus.WebGLRenderer(); 
-                render.initGL(canvas);
-                render.setClearColor( 0,0,0,1 );
+                renderer = new Maximus.WebGLRenderer(); 
+                renderer.initGL(canvas);
+                renderer.setClearColor( 0,0,1,1 );
                 
-                render.initShaders( document.getElementById("shader-vs")
+                renderer.initShaders( document.getElementById("shader-vs")
                                      , document.getElementById("shader-fs") );
-                render.initBuffers();
-                                
-                render.drawScene();
-            };            
+                renderer.initBuffers();        
+                
+                mat4.identity( worldMtx );
+               
+            };        
+          
+            function updateFrame() {
+                requestAnimationFrame( updateFrame );
+                
+                mat4.identity( worldMtx );
+                mat4.translate( worldMtx, [0.0, 0.0, -7.0] );
+                
+                rotateAngle += 5;           
+                mat4.rotateY( worldMtx, Maximus.Math.degToRad( rotateAngle ), worldMtx );
+
+                render( worldMtx );
+            }
+            
+            function render( mtx ) {                
+                renderer.drawScene( mtx );
+            }
             
         </script>
     </body>
