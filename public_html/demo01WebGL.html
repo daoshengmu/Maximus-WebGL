@@ -14,22 +14,32 @@ and open the template in the editor.
         <canvas id ="webGL-canvas" style="border: none;"
                 width="800" height="600" ></canvas>
         <script src="build/gl-matrix-min.js"></script>
-        <script src="build/Maximus.js"></script>
+        <script src="build/maximus.js"></script>
         <script id="shader-vs" type="x-shader/x-vertex">
-            attribute vec3 aVertexPosition;
+            attribute vec3 POSITION;
+            attribute vec4 COLOR;
+            attribute vec4 NORMAL;
+            
+            varying vec4 outCOLOR0;
+            varying vec4 outNORMAL;
             
             uniform mat4 uMVMatrix;
             uniform mat4 uPMatrix;
             
             void main(void) {
-                gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+                gl_Position = uPMatrix * uMVMatrix * vec4(POSITION, 1.0);
+                outCOLOR0 = COLOR;
+                outNORMAL = NORMAL;
             }
         </script>
         <script id="shader-fs" type="x-shader/x-fragment">
             precision mediump float;
             
+            varying vec4 outCOLOR0;
+            varying vec4 outNORMAL;
+            
             void main(void) {
-                gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+                gl_FragColor = vec4(1,1,1,1);
             }
         </script>
         <script>

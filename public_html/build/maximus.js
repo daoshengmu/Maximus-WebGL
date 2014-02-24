@@ -85,7 +85,7 @@ Maximus.WebGLRenderer = function() {
 
         _gl.useProgram( shaderProgram );
 
-        shaderProgram.vertexPositionAttribute = _gl.getAttribLocation(shaderProgram, "aVertexPosition");
+        shaderProgram.vertexPositionAttribute = _gl.getAttribLocation(shaderProgram, "POSITION");
         _gl.enableVertexAttribArray( shaderProgram.vertexPositionAttribute );
         shaderProgram.pMatrixUniform = _gl.getUniformLocation(shaderProgram, "uPMatrix");
         shaderProgram.mvMatrixUniform = _gl.getUniformLocation(shaderProgram, "uMVMatrix");
