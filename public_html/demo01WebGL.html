@@ -86,10 +86,10 @@ and open the template in the editor.
                 requestAnimationFrame( updateFrame );
                 
                 mat4.identity( worldMtx );
-                mat4.translate( worldMtx, [0.0, 0.0, -7.0] );
+                mat4.translate( worldMtx, worldMtx, [0.0, 0.0, -7.0] );
                 
                 rotateAngle += 5;         
-                mat4.rotateY( worldMtx, Maximus.Math.degToRad( rotateAngle ), worldMtx );
+                mat4.rotateY( worldMtx, worldMtx, Maximus.Math.degToRad( rotateAngle ) );
 
                 render( worldMtx );
             }

@@ -249,8 +249,8 @@ Maximus.WebGLRenderer = function() {
         _gl.viewport( 0, 0, _gl.viewportWidth, _gl.viewportHeight );
         _gl.clear( _gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT );
 
-        mat4.perspective( 45, _gl.viewportWidth / _gl.viewportHeight, 0.1, 100.0, pMatrix );
-        mat4.multiply( worldMtx, viewMtx, mvMatrix );
+        mat4.perspective( pMatrix, 45, _gl.viewportWidth / _gl.viewportHeight, 0.1, 100.0 );
+        mat4.multiply( mvMatrix, worldMtx, viewMtx );
     
         _gl.bindBuffer( _gl.ARRAY_BUFFER, geometry.getVertexBuffer() );
         _gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3,
