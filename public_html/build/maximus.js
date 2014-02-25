@@ -31,7 +31,9 @@ Maximus.DirectionalLight = function( color, intensity, direction ) {
     
     var _color = color;
     var _intensity = intensity;
-    var _direction = direction;
+    var _direction = vec3.create();
+    
+    vec3.normalize( _direction, direction );
     
     this.getDirection = function() {
         return _direction;

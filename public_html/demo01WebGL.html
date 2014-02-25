@@ -75,7 +75,8 @@ and open the template in the editor.
                 
                 mat4.identity( worldMtx );
                 
-                directionalLight = new Maximus.DirectionalLight( [1.0,1.0,1.0], 1.0, [0.0,0.0,-1.0] );
+                var dir = vec3.fromValues( 0.0, 0.0, -1.0 );
+                directionalLight = new Maximus.DirectionalLight( [1.0,1.0,1.0], 1.0, dir );
                 redLambertMtr = new Maximus.LambertMaterial( [1.0, 0.0, 0.0, 1.0] );
                 cube = new Maximus.Cube();
                 cube.init( renderer, redLambertMtr );              
