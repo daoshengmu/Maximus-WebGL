@@ -139,7 +139,8 @@ Maximus.WebGLRenderer = function() {
 
     this.initGL = function(canvas) {
        try {
-           _gl = canvas.getContext("experimental-webgl");
+           _gl = canvas.getContext("experimental-webgl")
+                  || canvas.getContext('webgl');
            _gl.viewportWidth = canvas.width;
            _gl.viewportHeight = canvas.height;       
        }    
@@ -272,7 +273,6 @@ Maximus.WebGLRenderer = function() {
     var mvMatrix = mat4.create();
     var pMatrix = mat4.create();
     var viewMtx = mat4.create();
-    mat4.identity( viewMtx );
     
     function _setMatrixUniform() {
         _gl.uniformMatrix4fv( shaderProgram.pMatrixUniform, false, pMatrix );
