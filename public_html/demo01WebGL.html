@@ -70,8 +70,8 @@ and open the template in the editor.
                 renderer.initGL(canvas);
                 renderer.setClearColor( 0,0,0,1 );
                 
-                renderer.initShaders( document.getElementById("shader-vs")
-                                     , document.getElementById("shader-fs") );
+                renderer.initShaders( document.getElementById("shader-vs").innerHTML
+                                     , document.getElementById("shader-fs").innerHTML );
                 
                 var dir = vec3.fromValues( 0.0, 0.0, -1.0 );
                 directionalLight = new Maximus.DirectionalLight( [1.0,1.0,1.0], 1.0, dir );

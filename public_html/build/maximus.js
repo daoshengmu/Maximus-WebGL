@@ -1,6 +1,7 @@
 /* 
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Maximus, a WebGL renderering framework
+ * author: daoshengmu, http://dsmu.me
+ * date: 08/07/2015
  */
 
 var Maximus = { REVISION: '1' };
@@ -141,15 +142,14 @@ Maximus.WebGLRenderer = function() {
        try {
            _gl = canvas.getContext("experimental-webgl")
                   || canvas.getContext('webgl');
-           _gl.viewportWidth = canvas.width;
-           _gl.viewportHeight = canvas.height;       
+           _this.setSize( canvas.width, canvas.height );
        }    
        catch(e) {
-
+          console.log( "initGL exception:" + e );
        }
 
        if ( !_gl ) {
-           alert("Could not initialise WebGL...");
+           alert( "Could not initialise WebGL..." );
        }
 
        _gl.clearColor( 0.0, 0.0, 0.0, 1.0 );
@@ -160,32 +160,32 @@ Maximus.WebGLRenderer = function() {
         _gl.clearColor( r, g, b, a );
     };
 
-    function getShader( context, id ) {
-        var shaderScript = id;
-        if ( !shaderScript ) {
-            return null;
-        }
+    function getShader( context, code, type ) {
+        // var shaderScript = id;
+        // if ( !shaderScript ) {
+        //     return null;
+        // }
 
-        var str = "";
-        var k = shaderScript.firstChild;
-        while ( k ) {
-            if ( k.nodeType === 3 ) {
-                str += k.textContent;
-            }
+        // var str = "";
+        // var k = shaderScript.firstChild;
+        // while ( k ) {
+        //     if ( k.nodeType === 3 ) {
+        //         str += k.textContent;
+        //     }
 
-            k = k.nextSibling;
-        }
+        //     k = k.nextSibling;
+        // }
 
         var shader;
-        if ( shaderScript.type === "x-shader/x-fragment" ) {
+        if ( type === "x-shader/x-fragment" ) {
             shader = context.createShader(_gl.FRAGMENT_SHADER);
-        } else if ( shaderScript.type === "x-shader/x-vertex" ) {
+        } else if ( type === "x-shader/x-vertex" ) {
             shader = context.createShader(_gl.VERTEX_SHADER);
         } else {
             return null;
         }
 
-        context.shaderSource(shader, str);
+        context.shaderSource(shader, code);
         context.compileShader(shader);
 
         if ( !context.getShaderParameter(shader, context.COMPILE_STATUS) ) {
@@ -199,8 +199,8 @@ Maximus.WebGLRenderer = function() {
     var shaderProgram;
     this.initShaders = function( vs, fs ) {
 
-        var vertexShader = getShader(_gl, vs);
-        var fragmentShader = getShader(_gl, fs);
+        var vertexShader = getShader(_gl, vs, "x-shader/x-vertex");
+        var fragmentShader = getShader(_gl, fs, "x-shader/x-fragment");
 
         shaderProgram = _gl.createProgram();
         _gl.attachShader( shaderProgram, vertexShader );
@@ -232,7 +232,12 @@ Maximus.WebGLRenderer = function() {
         shaderProgram.lightColor = _gl.getUniformLocation(shaderProgram, "lightColor");
     };
  
-     this.setLight = function( directionalLight ) {
+    this.setSize = function( width, height ) {
+      _gl.viewportWidth = width;
+      _gl.viewportHeight = height;
+    }
+
+    this.setLight = function( directionalLight ) {
         
         var lightDir = directionalLight.getDirection();
         var lightColor = directionalLight.getColor();
@@ -251,6 +256,9 @@ Maximus.WebGLRenderer = function() {
     this.drawScene = function( worldMtx, geometry ) {
         _gl.viewport( 0, 0, _gl.viewportWidth, _gl.viewportHeight );
         _gl.clear( _gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT );
+
+        if ( !worldMtx || !geometry )
+          return;
 
         mat4.perspective( pMatrix, 45, _gl.viewportWidth / _gl.viewportHeight, 0.1, 100.0 );
         mat4.multiply( mvMatrix, worldMtx, viewMtx );
@@ -273,6 +281,7 @@ Maximus.WebGLRenderer = function() {
     var mvMatrix = mat4.create();
     var pMatrix = mat4.create();
     var viewMtx = mat4.create();
+    //mat4.identity( viewMtx );  // This can be removed.
     
     function _setMatrixUniform() {
         _gl.uniformMatrix4fv( shaderProgram.pMatrixUniform, false, pMatrix );
