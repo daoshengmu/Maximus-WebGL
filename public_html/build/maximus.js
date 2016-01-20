@@ -19,12 +19,21 @@ Maximus.Math = {
     
 };
 
-Maximus.LambertMaterial = function( color ) {
+Maximus.LambertMaterial = function( color, texture ) {
     var _color = color;
+    var _texture = texture;
     
     this.getColor = function() {
-        return _color;  
+      return _color;  
     };
+
+    this.getTexture = function() {
+      return _texture;
+    }
+
+    this.setTexture = function(tex) {
+      _texture = tex;
+    }
 };
 
 Maximus.DirectionalLight = function( color, intensity, direction ) {
@@ -62,44 +71,44 @@ Maximus.Cube = function() {
 
         var vertices = [
           // Front face
-          -1.0, -1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0,  
-          1.0, -1.0, 1.0,  0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0,
-          1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0,
-          -1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0,
+          -1.0, -1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0,  
+          1.0, -1.0, 1.0,  0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0,
+          1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0,
+          -1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0,
           
           // Back face
-          -1.0, -1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, -1.0,  
-          -1.0, 1.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, -1.0,
-          1.0, 1.0, -1.0,  0.0, 0.0, 1.0, 1.0, 0.0, 0.0, -1.0,
-          1.0, -1.0, -1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, -1.0,
+          -1.0, -1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, -1.0, 0.0, 0.0,  
+          -1.0, 1.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, -1.0, 1.0, 0.0,
+          1.0, 1.0, -1.0,  0.0, 0.0, 1.0, 1.0, 0.0, 0.0, -1.0, 1.0, 1.0,
+          1.0, -1.0, -1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, -1.0, 0.0, 1.0,
           
           // Top face
-          -1.0, 1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0,  
-          -1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0,
-          1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0,
-          1.0, 1.0, -1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0,
+          -1.0, 1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0,
+          -1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0,
+          1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 1.0,
+          1.0, 1.0, -1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0,
           
           // Bottom face
-          -1.0, -1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0,
-          1.0, -1.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, -1.0, 0.0,
-          1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, -1.0, 0.0,
-          -1.0, -1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, -1.0, 0.0,
+          -1.0, -1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0, 0.0, 0.0,
+          1.0, -1.0, -1.0, 0.0, 1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 1.0, 0.0,
+          1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, -1.0, 0.0, 1.0, 1.0,
+          -1.0, -1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 0.0, 1.0,
           
           // Right face
-          1.0, -1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0,
-          1.0, 1.0, -1.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0,
-          1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0,
-          1.0, -1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0,
+          1.0, -1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0,
+          1.0, 1.0, -1.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0,
+          1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0,
+          1.0, -1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 1.0,
           
           // Left face
-          -1.0, -1.0, -1.0, 1.0, 0.0, 0.0, 1.0, -1.0, 0.0, 0.0,
-          -1.0, -1.0, 1.0, 0.0, 1.0, 0.0, 1.0, -1.0, 0.0, 0.0,
-          -1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, -1.0, 0.0, 0.0,
-          -1.0, 1.0, -1.0, 1.0, 1.0, 0.0, 1.0, -1.0, 0.0, 0.0
+          -1.0, -1.0, -1.0, 1.0, 0.0, 0.0, 1.0, -1.0, 0.0, 0.0, 0.0, 0.0,
+          -1.0, -1.0, 1.0, 0.0, 1.0, 0.0, 1.0, -1.0, 0.0, 0.0, 1.0, 0.0,
+          -1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, -1.0, 0.0, 0.0, 1.0, 1.0,
+          -1.0, 1.0, -1.0, 1.0, 1.0, 0.0, 1.0, -1.0, 0.0, 0.0, 0.0, 1.0
         ];
 
         gl.bufferData( gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW );
-        _cubeVertexBuffer.itemSize = 10;
+        _cubeVertexBuffer.itemSize = 12;
         _cubeVertexBuffer.numItems = 24;
         
         _cubeIndexBuffer = gl.createBuffer();
@@ -159,6 +168,33 @@ Maximus.WebGLRenderer = function() {
     this.setClearColor = function( r, g, b, a ) {
         _gl.clearColor( r, g, b, a );
     };
+
+    this.createTexture = function( image ) {
+      var texture = _gl.createTexture();
+      _gl.bindTexture(_gl.TEXTURE_2D, texture);
+      _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, _gl.UNSIGNED_BYTE, image);
+      _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.LINEAR);
+      _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.LINEAR_MIPMAP_NEAREST);
+      _gl.generateMipmap(_gl.TEXTURE_2D);
+      _gl.bindTexture(_gl.TEXTURE_2D, null);
+
+      return texture;
+    }
+
+    this.genElementTexture = function( domElement ) {
+      var texture = _gl.createTexture();
+      _gl.bindTexture(_gl.TEXTURE_2D, texture);
+      var ext = _gl.getExtension("MOZ_texture_from_element");
+      ext.texImage2D(_gl.TEXTURE_2D, 0, domElement);
+
+     // _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, _gl.UNSIGNED_BYTE, domElement);
+      _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.LINEAR);
+      _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.LINEAR_MIPMAP_NEAREST);
+      _gl.generateMipmap(_gl.TEXTURE_2D);
+      _gl.bindTexture(_gl.TEXTURE_2D, null);
+
+      return texture;
+    }
 
     function getShader( context, id ) {
         var shaderScript = id;
@@ -222,6 +258,8 @@ Maximus.WebGLRenderer = function() {
         _gl.enableVertexAttribArray( shaderProgram.vertexColorAttribute );
         shaderProgram.vertexNormalAttribute = _gl.getAttribLocation(shaderProgram, "NORMAL");
         _gl.enableVertexAttribArray( shaderProgram.vertexNormalAttribute );
+        shaderProgram.vertexUVAttribute = _gl.getAttribLocation(shaderProgram, "UV");
+        _gl.enableVertexAttribArray( shaderProgram.vertexUVAttribute );
        
         shaderProgram.pMatrixUniform = _gl.getUniformLocation(shaderProgram, "uPMatrix");
         shaderProgram.mvMatrixUniform = _gl.getUniformLocation(shaderProgram, "uMVMatrix");
@@ -230,6 +268,7 @@ Maximus.WebGLRenderer = function() {
         shaderProgram.matDiffuse = _gl.getUniformLocation(shaderProgram, "matDiffuse");
         shaderProgram.lightDir = _gl.getUniformLocation(shaderProgram, "lightDir");
         shaderProgram.lightColor = _gl.getUniformLocation(shaderProgram, "lightColor");
+        shaderProgram.uSampler = _gl.getUniformLocation( shaderProgram, "uSampler" );
     };
  
      this.setLight = function( directionalLight ) {
@@ -257,15 +296,17 @@ Maximus.WebGLRenderer = function() {
     
         _gl.bindBuffer( _gl.ARRAY_BUFFER, geometry.getVertexBuffer() );
         _gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3,
-                        _gl.FLOAT, false, 4 * 10, 0 );
+                        _gl.FLOAT, false, 4 * 12, 0 );
         _gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, 4,
-                        _gl.FLOAT, false, 4 * 10, 3 * 4 );
+                        _gl.FLOAT, false, 4 * 12, 3 * 4 );
         _gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute, 3,
-                        _gl.FLOAT, false, 4 * 10, (3 + 4) * 4 );
+                        _gl.FLOAT, false, 4 * 12, (3 + 4) * 4 );
+        _gl.vertexAttribPointer(shaderProgram.vertexUVAttribute, 2,
+                        _gl.FLOAT, false, 4 * 12, (3 + 4 + 3) * 4 );
                    
         _gl.bindBuffer( _gl.ELEMENT_ARRAY_BUFFER, geometry.getIndexBuffer() );
         _setMatrixUniform();
-        _setMaterialColor( geometry.getMaterial().getColor() );
+        _setMaterial( geometry.getMaterial() );
       
         _gl.drawElements( _gl.TRIANGLES, geometry.getIndexBuffer().numItems, _gl.UNSIGNED_SHORT, 0 );
     };
@@ -279,8 +320,13 @@ Maximus.WebGLRenderer = function() {
         _gl.uniformMatrix4fv( shaderProgram.mvMatrixUniform, false, mvMatrix );    
     }
     
-    function _setMaterialColor( color ) {
-        _gl.uniform4fv( shaderProgram.matDiffuse, color );
+    function _setMaterial( material ) {
+        _gl.uniform4fv( shaderProgram.matDiffuse, material.getColor() );
+
+        // Set texture
+        _gl.activeTexture( _gl.TEXTURE0 );
+        _gl.bindTexture( _gl.TEXTURE_2D, cubeTexture );
+       // _gl.uniform1i( shaderProgram.uSampler, 0 ); // Need?
     }
        
 };
