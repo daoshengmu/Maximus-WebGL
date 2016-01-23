@@ -13,9 +13,13 @@ and open the template in the editor.
         <div id="myDiv">TODO write content</div>
         <image id="myImg" src="assets/textures/crate.gif"></image>
         <canvas id="myCanvas" width="64" height="64"></canvas>
-        <iframe id="myIframe" src="http://www.w3schools.com" width="256" height="256">
+        <video id="myVideo" src="assets/videos/H264_test5_voice.mp4" width="256" height="256" autoplay></video>
+       <!--  <iframe id="myIframe" src="http://www.w3schools.com" width="256" height="256"> -->
+            <!-- <iframe id="myIframe" width="256" height="256" src="https://www.youtube.com/embed/-tazIAxskXc" frameborder="0" allowfullscreen></iframe> -->
+       <iframe id="myIframe" src="http://www.youtube.com" width="256" height="256">
             <p>Your browser does not support iframes.</p>
         </iframe>
+        <br>
         <canvas id ="webGL-canvas" style="border: none;"
                 width="400" height="300" ></canvas>
         <script src="build/gl-matrix-min.js"></script>
@@ -105,6 +109,7 @@ and open the template in the editor.
                 var canvas = document.getElementById("myCanvas");
                 var img = document.getElementById("myImg");
                 var frame = document.getElementById("myIframe");
+                var video = document.getElementById("myVideo");
                 cubeTexture = renderer.genElementTexture(frame); 
                 redLambertMtr = new Maximus.LambertMaterial( [1.0, 1.0, 1.0, 1.0], cubeTexture );
                 createCube();
@@ -123,12 +128,12 @@ and open the template in the editor.
                 mat4.scale( worldMtx, worldMtx, [2.0, 2.0, 2.0] );
                 
                 var frame = document.getElementById("myIframe");
-                cubeTexture = renderer.genElementTexture(frame);
+                if (redLambertMtr) {
+                    renderer.updateElementTexture( 
+                        redLambertMtr.getTexture(), frame );
+                }
 
-                if (redLambertMtr)
-                    redLambertMtr.setTexture(cubeTexture);
-
-                rotateAngle += 5;
+                //rotateAngle += 5;
                 mat4.rotateY( worldMtx, worldMtx, Maximus.Math.degToRad( rotateAngle ) );
 
                 render( worldMtx );
