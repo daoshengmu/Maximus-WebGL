@@ -116,6 +116,7 @@ Maximus.Geometry = function() {
   var _vertexBuffer;
   var _indexBuffer;
   var _material;
+  var _worldMatrix = mat4.create();
 
   this.init = function( renderer, mtr ) {
     _material = mtr;
@@ -153,12 +154,21 @@ Maximus.Geometry = function() {
   this.getMaterial = function() {
     return _material;
   };
+
+  this.setWorldMatrix = function( mtx ) {
+    _worldMatrix = mtx;
+  };
+
+  this.getWorldMatrix = function() {
+    return _worldMatrix;
+  };
 }
 
 Maximus.Cube = function() {
     var _cubeVertexBuffer;
     var _cubeIndexBuffer;
     var _material;
+    var _worldMatrix = mat4.create();
     
     this.init = function( renderer, mtr ) {
         _material = mtr;
@@ -238,6 +248,13 @@ Maximus.Cube = function() {
         return _material;
     };
     
+    this.setWorldMatrix = function( mtx ) {
+      _worldMatrix = mtx;
+    };
+
+    this.getWorldMatrix = function() {
+      return _worldMatrix;
+    };
 };
 
 // The method of constructing sphere geometry referes here, http://learningwebgl.com/blog/?p=1253
@@ -245,6 +262,7 @@ Maximus.Sphere = function() {
     var _sphereVertexBuffer;
     var _sphereIndexBuffer;
     var _material;
+    var _worldMatrix = mat4.create();
     
     this.init = function( renderer, mtr, radius, latitudeBands, longitudeBands ) {
         _material = mtr;
@@ -325,15 +343,23 @@ Maximus.Sphere = function() {
     };
 
     this.getVertexBuffer = function() {
-        return _sphereVertexBuffer;
+      return _sphereVertexBuffer;
     };
     
     this.getIndexBuffer = function() {
-        return _sphereIndexBuffer;
+      return _sphereIndexBuffer;
     };   
     
     this.getMaterial = function() {
-        return _material;
+      return _material;
+    };
+
+    this.setWorldMatrix = function(mtx) {
+      _worldMatrix = mtx;
+    };
+
+    this.getWorldMatrix = function() {
+      return _worldMatrix;
     };
 }
 
@@ -481,10 +507,10 @@ Maximus.WebGLRenderer = function() {
     this.setSize = function( width, height ) {
       _gl.viewportWidth = width;
       _gl.viewportHeight = height;
+      mat4.perspective( pMatrix, 45, _gl.viewportWidth / _gl.viewportHeight, 0.1, 100.0 );
     }
 
     this.setLight = function( directionalLight ) {
-        
         var lightDir = directionalLight.getDirection();
         var lightColor = directionalLight.getColor();
         var intensity = directionalLight.getIntensity();
@@ -499,18 +525,14 @@ Maximus.WebGLRenderer = function() {
         return _gl;
     };
 
-    this.drawScene = function( worldMtx, drawList ) {
+    this.drawScene = function( drawList ) {
         _gl.viewport( 0, 0, _gl.viewportWidth, _gl.viewportHeight );
         _gl.clear( _gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT );
 
-        if ( !worldMtx )
-          return;
-
-        mat4.perspective( pMatrix, 45, _gl.viewportWidth / _gl.viewportHeight, 0.1, 100.0 );
-        mat4.multiply( mvMatrix, worldMtx, viewMtx );
-
         for (var i = 0; i < drawList.length; ++i ) {
           var geometry = drawList[i];
+          var worldMtx = geometry.getWorldMatrix();
+          mat4.multiply( mvMatrix, worldMtx, viewMtx );
 
           _gl.bindBuffer( _gl.ARRAY_BUFFER, geometry.getVertexBuffer() );
           _gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3,

@@ -135,15 +135,15 @@ and open the template in the editor.
 
                 //rotateAngle += 5;
                 mat4.rotateY( worldMtx, worldMtx, Maximus.Math.degToRad( rotateAngle ) );
-
-                render( worldMtx );
+                cube.setWorldMatrix( worldMtx );
+                render();
             }
             
-            function render( mtx ) {    
+            function render() {    
                 renderer.setLight( directionalLight );
 
                 if (cube)
-                    renderer.drawScene( mtx, cube );
+                    renderer.drawScene( cube );
             }
             
         </script>

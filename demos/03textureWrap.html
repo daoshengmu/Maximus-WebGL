@@ -68,7 +68,6 @@ and open the template in the editor.
             var directionalLight;
             var cube;
             var redLambertMtr;
-            var worldMtx = mat4.create();
             var rotateAngle = 0;
             var cubeTexture = null;
             var geoArray = [];
@@ -126,6 +125,11 @@ and open the template in the editor.
                     ];
                     geometry.createIndexBuffer( renderer, indices, 1, 6 );
 
+                    var worldMtx = mat4.create();
+                    mat4.identity( worldMtx );
+                    mat4.translate( worldMtx, worldMtx, [0.0, 0.0, -7.0] );
+                    mat4.scale( worldMtx, worldMtx, [2.0, 2.0, 2.0] );
+                    geometry.setWorldMatrix(worldMtx);
                     geoArray.push( geometry );
                 }
             }
@@ -154,28 +158,19 @@ and open the template in the editor.
 
             function updateFrame() {
                 requestAnimationFrame( updateFrame );
-                
-                mat4.identity( worldMtx );
-                mat4.translate( worldMtx, worldMtx, [0.0, 0.0, -7.0] );
-                mat4.scale( worldMtx, worldMtx, [2.0, 2.0, 2.0] );
-                
                 // var frame = document.getElementById("myIframe");
                 // if (redLambertMtr) {
                 //     renderer.updateElementTexture( 
                 //         redLambertMtr.getTexture(), frame );
                 // }
-
-                //rotateAngle += 5;
-                // mat4.rotateY( worldMtx, worldMtx, Maximus.Math.degToRad( rotateAngle ) );
-
-                render( worldMtx );
+                render();
             }
             
-            function render( mtx ) {    
+            function render() {    
                 //renderer.setLight( directionalLight );
 
                 if (geoArray.length) {
-                    renderer.drawScene( mtx, geoArray );
+                    renderer.drawScene( geoArray );
                 }
             }
             

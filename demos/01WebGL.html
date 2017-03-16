@@ -62,7 +62,6 @@ and open the template in the editor.
             var directionalLight;
             var cube;
             var redLambertMtr;
-            var worldMtx = mat4.create();
             var rotateAngle = 0;
             var geoArray = [];
             
@@ -89,19 +88,21 @@ and open the template in the editor.
             function updateFrame() {
                 requestAnimationFrame( updateFrame );
                 
+                var worldMtx = mat4.create();
                 mat4.identity( worldMtx );
                 mat4.translate( worldMtx, worldMtx, [0.0, 0.0, -7.0] );
                 
                 rotateAngle += 5;         
                 mat4.rotateY( worldMtx, worldMtx, Maximus.Math.degToRad( rotateAngle ) );
 
+                cube.setWorldMatrix( worldMtx );
                 render( worldMtx );
             }
             
-            function render( mtx ) {    
+            function render() {    
                 renderer.setLight( directionalLight );
                 if (geoArray.length) {
-                    renderer.drawScene( mtx, geoArray );
+                    renderer.drawScene(geoArray );
                 }
             }
             

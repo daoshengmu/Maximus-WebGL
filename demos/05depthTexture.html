@@ -60,8 +60,8 @@ and open the template in the editor.
             var renderer;
             var directionalLight;
             var sphere1;
+            var sphere2;
             var redLambertMtr;
-            var worldMtx = mat4.create();
             var rotateAngle = 0;
             var geoArray = [];
             
@@ -82,21 +82,35 @@ and open the template in the editor.
                 redLambertMtr = new Maximus.LambertMaterial( [1.0, 0.0, 0.0, 1.0] );
                 sphere1 = new Maximus.Sphere();
                 sphere1.init( renderer, redLambertMtr );
-                mat4.identity( worldMtx );
-                mat4.translate( worldMtx, worldMtx,
-                                [0.0, 0.0, -7.0] );
-                geoArray.push(sphere1);
+
+                var worldMtx1 = mat4.create();
+                mat4.identity( worldMtx1 );
+                mat4.translate( worldMtx1, worldMtx1,
+                                [-3.0, 0.0, -7.0] );
+                sphere1.setWorldMatrix( worldMtx1 );
+                geoArray.push( sphere1 );
+
+                sphere2 = new Maximus.Sphere();
+                sphere2.init( renderer, redLambertMtr );
+
+                var worldMtx2 = mat4.create();
+                mat4.identity( worldMtx2 );
+                mat4.translate( worldMtx2, worldMtx2,
+                                [3.0, 0.0, -7.0] );
+                sphere2.setWorldMatrix( worldMtx2 );
+                geoArray.push( sphere2 );
+
             };        
           
             function updateFrame() {
                 requestAnimationFrame( updateFrame );
-                render( worldMtx );
+                render();
             }
             
-            function render( mtx ) {
+            function render() {
                 renderer.setLight( directionalLight );
                 if (geoArray.length) {
-                    renderer.drawScene( mtx, geoArray );
+                    renderer.drawScene( geoArray );
                 }
             }
             
