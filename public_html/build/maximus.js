@@ -57,6 +57,49 @@ Maximus.DirectionalLight = function( color, intensity, direction ) {
     };
 };
 
+Maximus.Geometry = function() {
+  var _vertexBuffer;
+  var _indexBuffer;
+  var _material;
+
+  this.init = function( renderer, mtr ) {
+    _material = mtr;
+  };
+  
+  this.createVertexBuffer = function( renderer, vtxData, itemSize, numItems ) {
+    var gl = renderer.getContext();
+    
+    _vertexBuffer = gl.createBuffer();
+    gl.bindBuffer( gl.ARRAY_BUFFER, _vertexBuffer );
+    gl.bufferData( gl.ARRAY_BUFFER, new Float32Array(vtxData), gl.STATIC_DRAW );
+    _vertexBuffer.itemSize = itemSize;
+    _vertexBuffer.numItems = numItems;
+  }
+
+  this.createIndexBuffer = function( renderer, indexData, itemSize, numItems ) {
+    var gl = renderer.getContext();
+
+    _indexBuffer = gl.createBuffer();
+    gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, _indexBuffer );
+    
+    gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indexData), gl.STATIC_DRAW );
+    _indexBuffer.itemSize = itemSize;
+    _indexBuffer.numItems = numItems;
+  }
+
+  this.getVertexBuffer = function() {
+    return _vertexBuffer;
+  };
+  
+  this.getIndexBuffer = function() {
+    return _indexBuffer;
+  };
+  
+  this.getMaterial = function() {
+    return _material;
+  };
+}
+
 Maximus.Cube = function() {
     var _cubeVertexBuffer;
     var _cubeIndexBuffer;
@@ -179,7 +222,7 @@ Maximus.WebGLRenderer = function() {
       _gl.bindTexture(_gl.TEXTURE_2D, null);
 
       return texture;
-    }
+    };
 
     this.genElementTexture = function( domElement ) {
       var texture = _gl.createTexture();
@@ -284,7 +327,7 @@ Maximus.WebGLRenderer = function() {
         shaderProgram.uSampler = _gl.getUniformLocation( shaderProgram, "uSampler" );
     };
  
-     this.setLight = function( directionalLight ) {
+    this.setLight = function( directionalLight ) {
         
         var lightDir = directionalLight.getDirection();
         var lightColor = directionalLight.getColor();
@@ -300,28 +343,32 @@ Maximus.WebGLRenderer = function() {
         return _gl;
     };
 
-    this.drawScene = function( worldMtx, geometry ) {
+    this.drawScene = function( worldMtx, drawList ) {
         _gl.viewport( 0, 0, _gl.viewportWidth, _gl.viewportHeight );
         _gl.clear( _gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT );
 
         mat4.perspective( pMatrix, 45, _gl.viewportWidth / _gl.viewportHeight, 0.1, 100.0 );
         mat4.multiply( mvMatrix, worldMtx, viewMtx );
-    
-        _gl.bindBuffer( _gl.ARRAY_BUFFER, geometry.getVertexBuffer() );
-        _gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3,
-                        _gl.FLOAT, false, 4 * 12, 0 );
-        _gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, 4,
-                        _gl.FLOAT, false, 4 * 12, 3 * 4 );
-        _gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute, 3,
-                        _gl.FLOAT, false, 4 * 12, (3 + 4) * 4 );
-        _gl.vertexAttribPointer(shaderProgram.vertexUVAttribute, 2,
-                        _gl.FLOAT, false, 4 * 12, (3 + 4 + 3) * 4 );
-                   
-        _gl.bindBuffer( _gl.ELEMENT_ARRAY_BUFFER, geometry.getIndexBuffer() );
-        _setMatrixUniform();
-        _setMaterial( geometry.getMaterial() );
-      
-        _gl.drawElements( _gl.TRIANGLES, geometry.getIndexBuffer().numItems, _gl.UNSIGNED_SHORT, 0 );
+
+        for (var i = 0; i < drawList.length; ++i ) {
+          var geometry = drawList[i];
+
+          _gl.bindBuffer( _gl.ARRAY_BUFFER, geometry.getVertexBuffer() );
+          _gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3,
+                          _gl.FLOAT, false, 4 * 12, 0 );
+          _gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, 4,
+                          _gl.FLOAT, false, 4 * 12, 3 * 4 );
+          _gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute, 3,
+                          _gl.FLOAT, false, 4 * 12, (3 + 4) * 4 );
+          _gl.vertexAttribPointer(shaderProgram.vertexUVAttribute, 2,
+                          _gl.FLOAT, false, 4 * 12, (3 + 4 + 3) * 4 );
+                     
+          _gl.bindBuffer( _gl.ELEMENT_ARRAY_BUFFER, geometry.getIndexBuffer() );
+          _setMatrixUniform();
+          _setMaterial( geometry.getMaterial() );
+        
+          _gl.drawElements( _gl.TRIANGLES, geometry.getIndexBuffer().numItems, _gl.UNSIGNED_SHORT, 0 );
+        }
     };
 
     var mvMatrix = mat4.create();
