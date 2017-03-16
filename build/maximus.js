@@ -247,8 +247,13 @@ Maximus.Sphere = function() {
     var _material;
     
     this.init = function( renderer, mtr, radius, latitudeBands, longitudeBands ) {
+        _material = mtr;
+        var gl = renderer.getContext();
         
-        radius = radius || 50;
+        _sphereVertexBuffer = gl.createBuffer();
+        gl.bindBuffer( gl.ARRAY_BUFFER, _sphereVertexBuffer );
+
+        radius = radius || 1;
 
         latitudeBands = Math.max( 8, Math.floor( latitudeBands ) || 30 );
         longitudeBands = Math.max( 8, Math.floor( longitudeBands ) || 30 );
@@ -256,9 +261,9 @@ Maximus.Sphere = function() {
         var vertices = [];
         var indices = [];
         var x, y, verticesTemp = [], uvs = [];
-        var itemSize = 10; // POS3 + COLOR4 + NORMAL3
+        var itemSize = 12; // POS3 + COLOR4 + NORMAL3 + UV2
 
-        // Generate vertex date
+        // Generate vertex data
         for ( var latNumber = 0; latNumber <= latitudeBands; latNumber++ ) {
           var theta = latNumber * Math.PI / latitudeBands;
           var sinTheta = Math.sin(theta);
@@ -276,16 +281,21 @@ Maximus.Sphere = function() {
               var v = 1 - (latNumber / latitudeBands);
 
               // Add POSITION
-              vertices.push( x, y, z );
+              vertices.push( radius * x, radius * y, radius * z );
 
               // Add COLOR4
               vertices.push( 1.0, 0.0, 0.0, 1.0 );
 
               // Add NORMAL
               vertices.push( x, y, z );
+
+              // Add UV
+              vertices.push( u, v);
           }
         }
 
+        _sphereIndexBuffer = gl.createBuffer();
+        gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, _sphereIndexBuffer );
         // Generate index data
         for ( var latNumber = 0; latNumber < latitudeBands; latNumber++ ) {
           for ( var longNumber = 0; longNumber < longitudeBands; longNumber++ ) {

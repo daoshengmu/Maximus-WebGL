@@ -1,0 +1,105 @@
+<!--
+To change this template, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Ellis' first WebGL demo</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      
+    </head>
+    <body>
+        <canvas id ="webGL-canvas" style="border: none;"
+                width="400" height="300" ></canvas>
+        <script src="../libs/gl-matrix-min.js"></script>
+        <script src="../build/maximus.js"></script>
+        <script id="shader-vs" type="x-shader/x-vertex">
+            attribute vec3 POSITION;
+            attribute vec4 COLOR;
+            attribute vec3 NORMAL;
+            attribute vec2 UV;
+            
+            varying vec4 outCOLOR0;
+            varying vec3 outNORMAL;
+            varying vec2 outUV;
+            
+            uniform mat4 uMVMatrix;
+            uniform mat4 uPMatrix;
+            
+            void main(void) {
+                gl_Position = uPMatrix * uMVMatrix * vec4(POSITION, 1.0);
+                
+                outCOLOR0 = COLOR;
+                outNORMAL = (uMVMatrix * vec4( NORMAL, 0.0 )).xyz;
+                outUV = UV;
+            }
+        </script>
+        <script id="shader-fs" type="x-shader/x-fragment">
+            precision mediump float;
+            
+            varying vec4 outCOLOR0;
+            varying vec3 outNORMAL;
+            varying vec2 outUV;
+            uniform vec4 matDiffuse;
+            uniform vec4 lightDir;
+            uniform vec4 lightColor;
+            
+            void main(void) {
+                vec4 pixelColor;
+                
+                pixelColor.w = matDiffuse.w * outCOLOR0.w;
+                vec3 vNormal = normalize( outNORMAL );
+                float lightAmount = dot( vNormal, vec3(lightDir) );  
+                
+                pixelColor.xyz = matDiffuse.xyz * lightColor.xyz * lightAmount;
+                gl_FragColor = pixelColor;
+            }
+        </script>
+        <script>
+            var renderer;
+            var directionalLight;
+            var sphere1;
+            var redLambertMtr;
+            var worldMtx = mat4.create();
+            var rotateAngle = 0;
+            var geoArray = [];
+            
+            init();
+            updateFrame();
+            
+            function init() {
+                var canvas = document.getElementById("webGL-canvas");
+                renderer = new Maximus.WebGLRenderer(); 
+                renderer.initGL(canvas);
+                renderer.setClearColor( 0,0,0,1 );
+                
+                renderer.initShaders( document.getElementById("shader-vs").innerHTML
+                                     , document.getElementById("shader-fs").innerHTML );
+                
+                var dir = vec3.fromValues( 0.0, 0.0, -1.0 );
+                directionalLight = new Maximus.DirectionalLight( [1.0,1.0,1.0], 1.0, dir );
+                redLambertMtr = new Maximus.LambertMaterial( [1.0, 0.0, 0.0, 1.0] );
+                sphere1 = new Maximus.Sphere();
+                sphere1.init( renderer, redLambertMtr );
+                mat4.identity( worldMtx );
+                mat4.translate( worldMtx, worldMtx,
+                                [0.0, 0.0, -7.0] );
+                geoArray.push(sphere1);
+            };        
+          
+            function updateFrame() {
+                requestAnimationFrame( updateFrame );
+                render( worldMtx );
+            }
+            
+            function render( mtx ) {
+                renderer.setLight( directionalLight );
+                if (geoArray.length) {
+                    renderer.drawScene( mtx, geoArray );
+                }
+            }
+            
+        </script>
+    </body>
+</html>
