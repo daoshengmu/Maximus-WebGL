@@ -5,7 +5,7 @@ and open the template in the editor.
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Ellis' my first WebGL demo</title>
+        <title>Ellis' first WebGL demo</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
       
     </head>
@@ -13,8 +13,8 @@ and open the template in the editor.
         <div>TODO write content</div>
         <canvas id ="webGL-canvas" style="border: none;"
                 width="400" height="300" ></canvas>
-        <script src="build/gl-matrix-min.js"></script>
-        <script src="build/maximus.js"></script>
+        <script src="../libs/gl-matrix-min.js"></script>
+        <script src="../build/maximus.js"></script>
         <script id="shader-vs" type="x-shader/x-vertex">
             attribute vec3 POSITION;
             attribute vec4 COLOR;
@@ -70,8 +70,8 @@ and open the template in the editor.
                 renderer.initGL(canvas);
                 renderer.setClearColor( 0,0,0,1 );
                 
-                renderer.initShaders( document.getElementById("shader-vs")
-                                     , document.getElementById("shader-fs") );
+                renderer.initShaders( document.getElementById("shader-vs").innerHTML
+                                     , document.getElementById("shader-fs").innerHTML );
                 
                 var dir = vec3.fromValues( 0.0, 0.0, -1.0 );
                 directionalLight = new Maximus.DirectionalLight( [1.0,1.0,1.0], 1.0, dir );

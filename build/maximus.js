@@ -1,22 +1,77 @@
 /* 
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Maximus, a WebGL renderering framework
+ * author: daoshengmu, http://dsmu.me
+ * date: 08/07/2015
  */
 
-var Maximus = { REVISION: '1' };
+var Maximus = { REVISION: '1.1.0' };
 
 Maximus.Math = {
     
-    degToRad: function( degrees ) {
-        var degreeToRadiansFactor = Math.PI / 180;
+  degToRad: function( degrees ) {
+    var degreeToRadiansFactor = Math.PI / 180;
 
-        return function ( degrees ) {
+    return function ( degrees ) {
+      return degrees * degreeToRadiansFactor;
+    };
+  }()    
+};
 
-                return degrees * degreeToRadiansFactor;
+Maximus.Vector3 = function( x, y, z ) {
+  this.x = x | 0;
+  this.y = y | 0;
+  this.z = z | 0;
+};
 
-        };
-    }()
-    
+Maximus.Vector3.prototype = {
+
+  constructor: Maximus.Vector3,
+
+  subVectors: function( a, b ) {
+    this.x = a.x - b.x;
+    this.y = a.y - b.y;
+    this.z = a.z - b.z;
+
+    return this;
+  },
+
+  cross: function( v ) {
+    var x = this.x, y = this.y, z = this.z;
+
+    this.x = y * v.z - z * v.y;
+    this.y = z * v.x - x * v.z;
+    this.z = x * v.y - y * v.x;
+
+    return this;
+  },
+
+  length: function() {
+    return Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z );
+  },
+
+  divideScalar: function( scalar ) {
+    if ( scalar !== 0 ) {
+
+      var invScalar = 1 / scalar;
+
+      this.x *= invScalar;
+      this.y *= invScalar;
+      this.z *= invScalar;
+
+    } else {
+
+      this.x = 0;
+      this.y = 0;
+      this.z = 0;
+
+    }
+
+    return this;
+  },
+
+  normalize: function() {
+    return this.divideScalar( this.length() );
+  }
 };
 
 Maximus.LambertMaterial = function( color, texture ) {
@@ -112,7 +167,7 @@ Maximus.Cube = function() {
         _cubeVertexBuffer = gl.createBuffer();
         gl.bindBuffer( gl.ARRAY_BUFFER, _cubeVertexBuffer );
 
-        var vertices = [
+        var vertices = [ //(POS 3, COLOR 4, NORMAL 3)
           // Front face
           -1.0, -1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0,  
           1.0, -1.0, 1.0,  0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0,
@@ -185,6 +240,93 @@ Maximus.Cube = function() {
     
 };
 
+// The method of constructing sphere geometry referes here, http://learningwebgl.com/blog/?p=1253
+Maximus.Sphere = function() {
+    var _sphereVertexBuffer;
+    var _sphereIndexBuffer;
+    var _material;
+    
+    this.init = function( renderer, mtr, radius, latitudeBands, longitudeBands ) {
+        
+        radius = radius || 50;
+
+        latitudeBands = Math.max( 8, Math.floor( latitudeBands ) || 30 );
+        longitudeBands = Math.max( 8, Math.floor( longitudeBands ) || 30 );
+
+        var vertices = [];
+        var indices = [];
+        var x, y, verticesTemp = [], uvs = [];
+        var itemSize = 10; // POS3 + COLOR4 + NORMAL3
+
+        // Generate vertex date
+        for ( var latNumber = 0; latNumber <= latitudeBands; latNumber++ ) {
+          var theta = latNumber * Math.PI / latitudeBands;
+          var sinTheta = Math.sin(theta);
+          var cosTheta = Math.cos(theta);
+
+           for ( var longNumber = 0; longNumber <= longitudeBands; longNumber++ ) {
+              var phi = longNumber * 2 * Math.PI / longitudeBands;
+              var sinPhi = Math.sin(phi);
+              var cosPhi = Math.cos(phi);
+
+              var x = cosPhi * sinTheta;
+              var y = cosTheta;
+              var z = sinPhi * sinTheta;
+              var u = 1 - (longNumber / longitudeBands);
+              var v = 1 - (latNumber / latitudeBands);
+
+              // Add POSITION
+              vertices.push( x, y, z );
+
+              // Add COLOR4
+              vertices.push( 1.0, 0.0, 0.0, 1.0 );
+
+              // Add NORMAL
+              vertices.push( x, y, z );
+          }
+        }
+
+        // Generate index data
+        for ( var latNumber = 0; latNumber < latitudeBands; latNumber++ ) {
+          for ( var longNumber = 0; longNumber < longitudeBands; longNumber++ ) {
+
+            var first = (latNumber * (longitudeBands + 1)) + longNumber;
+            var second = first + longitudeBands + 1;
+
+            indices.push( first, second, first + 1 );
+            indices.push( second, second + 1, first + 1 );
+          }
+        }
+
+        _material = mtr;
+        var gl = renderer.getContext();
+        
+        _sphereVertexBuffer = gl.createBuffer();
+        gl.bindBuffer( gl.ARRAY_BUFFER, _sphereVertexBuffer );
+        gl.bufferData( gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW );
+        _sphereVertexBuffer.itemSize = itemSize;
+        _sphereVertexBuffer.numItems = vertices.length / _sphereVertexBuffer.itemSize;
+        
+        _sphereIndexBuffer = gl.createBuffer();
+        gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, _sphereIndexBuffer );
+        gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW );
+        _sphereIndexBuffer.itemSize = 1;
+        _sphereIndexBuffer.numItems = indices.length;
+    };
+
+    this.getVertexBuffer = function() {
+        return _sphereVertexBuffer;
+    };
+    
+    this.getIndexBuffer = function() {
+        return _sphereIndexBuffer;
+    };   
+    
+    this.getMaterial = function() {
+        return _material;
+    };
+}
+
 Maximus.WebGLRenderer = function() {
     var _this = this;
     var _gl;
@@ -193,15 +335,14 @@ Maximus.WebGLRenderer = function() {
        try {
            _gl = canvas.getContext("experimental-webgl")
                   || canvas.getContext('webgl');
-           _gl.viewportWidth = canvas.width;
-           _gl.viewportHeight = canvas.height;       
+           _this.setSize( canvas.width, canvas.height );
        }    
        catch(e) {
-
+          console.log( "initGL exception:" + e );
        }
 
        if ( !_gl ) {
-           alert("Could not initialise WebGL...");
+           alert( "Could not initialise WebGL..." );
        }
 
        _gl.clearColor( 0.0, 0.0, 0.0, 1.0 );
@@ -252,32 +393,32 @@ Maximus.WebGLRenderer = function() {
       ext.texImage2D(_gl.TEXTURE_2D, 0, domElement);
     }
 
-    function getShader( context, id ) {
-        var shaderScript = id;
-        if ( !shaderScript ) {
-            return null;
-        }
+    function getShader( context, code, type ) {
+        // var shaderScript = id;
+        // if ( !shaderScript ) {
+        //     return null;
+        // }
 
-        var str = "";
-        var k = shaderScript.firstChild;
-        while ( k ) {
-            if ( k.nodeType === 3 ) {
-                str += k.textContent;
-            }
+        // var str = "";
+        // var k = shaderScript.firstChild;
+        // while ( k ) {
+        //     if ( k.nodeType === 3 ) {
+        //         str += k.textContent;
+        //     }
 
-            k = k.nextSibling;
-        }
+        //     k = k.nextSibling;
+        // }
 
         var shader;
-        if ( shaderScript.type === "x-shader/x-fragment" ) {
+        if ( type === "x-shader/x-fragment" ) {
             shader = context.createShader(_gl.FRAGMENT_SHADER);
-        } else if ( shaderScript.type === "x-shader/x-vertex" ) {
+        } else if ( type === "x-shader/x-vertex" ) {
             shader = context.createShader(_gl.VERTEX_SHADER);
         } else {
             return null;
         }
 
-        context.shaderSource(shader, str);
+        context.shaderSource(shader, code);
         context.compileShader(shader);
 
         if ( !context.getShaderParameter(shader, context.COMPILE_STATUS) ) {
@@ -291,8 +432,8 @@ Maximus.WebGLRenderer = function() {
     var shaderProgram;
     this.initShaders = function( vs, fs ) {
 
-        var vertexShader = getShader(_gl, vs);
-        var fragmentShader = getShader(_gl, fs);
+        var vertexShader = getShader(_gl, vs, "x-shader/x-vertex");
+        var fragmentShader = getShader(_gl, fs, "x-shader/x-fragment");
 
         shaderProgram = _gl.createProgram();
         _gl.attachShader( shaderProgram, vertexShader );
@@ -327,6 +468,11 @@ Maximus.WebGLRenderer = function() {
         shaderProgram.uSampler = _gl.getUniformLocation( shaderProgram, "uSampler" );
     };
  
+    this.setSize = function( width, height ) {
+      _gl.viewportWidth = width;
+      _gl.viewportHeight = height;
+    }
+
     this.setLight = function( directionalLight ) {
         
         var lightDir = directionalLight.getDirection();
@@ -346,6 +492,9 @@ Maximus.WebGLRenderer = function() {
     this.drawScene = function( worldMtx, drawList ) {
         _gl.viewport( 0, 0, _gl.viewportWidth, _gl.viewportHeight );
         _gl.clear( _gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT );
+
+        if ( !worldMtx || !geometry )
+          return;
 
         mat4.perspective( pMatrix, 45, _gl.viewportWidth / _gl.viewportHeight, 0.1, 100.0 );
         mat4.multiply( mvMatrix, worldMtx, viewMtx );
@@ -374,6 +523,7 @@ Maximus.WebGLRenderer = function() {
     var mvMatrix = mat4.create();
     var pMatrix = mat4.create();
     var viewMtx = mat4.create();
+    //mat4.identity( viewMtx );  // This can be removed.
     
     function _setMatrixUniform() {
         _gl.uniformMatrix4fv( shaderProgram.pMatrixUniform, false, pMatrix );
