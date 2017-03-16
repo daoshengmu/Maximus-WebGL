@@ -1,10 +1,10 @@
 /* 
  * Maximus, a WebGL renderering framework
  * author: daoshengmu, http://dsmu.me
- * date: 08/07/2015
+ * date: 03/16/2017
  */
 
-var Maximus = { REVISION: '1.1.0' };
+var Maximus = { REVISION: '1.1.1' };
 
 Maximus.Math = {
     
@@ -167,7 +167,7 @@ Maximus.Cube = function() {
         _cubeVertexBuffer = gl.createBuffer();
         gl.bindBuffer( gl.ARRAY_BUFFER, _cubeVertexBuffer );
 
-        var vertices = [ //(POS 3, COLOR 4, NORMAL 3)
+        var vertices = [ //(POS 3, COLOR 4, NORMAL 3, UV 2)
           // Front face
           -1.0, -1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0,  
           1.0, -1.0, 1.0,  0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0,
@@ -493,7 +493,7 @@ Maximus.WebGLRenderer = function() {
         _gl.viewport( 0, 0, _gl.viewportWidth, _gl.viewportHeight );
         _gl.clear( _gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT );
 
-        if ( !worldMtx || !geometry )
+        if ( !worldMtx )
           return;
 
         mat4.perspective( pMatrix, 45, _gl.viewportWidth / _gl.viewportHeight, 0.1, 100.0 );
@@ -534,8 +534,10 @@ Maximus.WebGLRenderer = function() {
         _gl.uniform4fv( shaderProgram.matDiffuse, material.getColor() );
 
         // Set texture
-        _gl.activeTexture( _gl.TEXTURE0 );
-        _gl.bindTexture( _gl.TEXTURE_2D, cubeTexture );
+        if (material.getTexture()) {  // FIXIT: workaround for texture mapping demo.
+          _gl.activeTexture( _gl.TEXTURE0 );
+          _gl.bindTexture( _gl.TEXTURE_2D, material.getTexture() );
+        }
        // _gl.uniform1i( shaderProgram.uSampler, 0 ); // Need?
     }
        

@@ -19,9 +19,11 @@ and open the template in the editor.
             attribute vec3 POSITION;
             attribute vec4 COLOR;
             attribute vec3 NORMAL;
+            attribute vec2 UV;
             
             varying vec4 outCOLOR0;
             varying vec3 outNORMAL;
+            varying vec2 outUV;
             
             uniform mat4 uMVMatrix;
             uniform mat4 uPMatrix;
@@ -31,6 +33,7 @@ and open the template in the editor.
                 
                 outCOLOR0 = COLOR;
                 outNORMAL = (uMVMatrix * vec4( NORMAL, 0.0 )).xyz;
+                outUV = UV;
             }
         </script>
         <script id="shader-fs" type="x-shader/x-fragment">
@@ -38,6 +41,7 @@ and open the template in the editor.
             
             varying vec4 outCOLOR0;
             varying vec3 outNORMAL;
+            varying vec2 outUV;
             uniform vec4 matDiffuse;
             uniform vec4 lightDir;
             uniform vec4 lightColor;
@@ -60,6 +64,7 @@ and open the template in the editor.
             var redLambertMtr;
             var worldMtx = mat4.create();
             var rotateAngle = 0;
+            var geoArray = [];
             
             init();
             updateFrame();
@@ -77,8 +82,8 @@ and open the template in the editor.
                 directionalLight = new Maximus.DirectionalLight( [1.0,1.0,1.0], 1.0, dir );
                 redLambertMtr = new Maximus.LambertMaterial( [1.0, 0.0, 0.0, 1.0] );
                 cube = new Maximus.Cube();
-                cube.init( renderer, redLambertMtr );              
-                
+                cube.init( renderer, redLambertMtr );           
+                geoArray.push(cube);
             };        
           
             function updateFrame() {
@@ -95,7 +100,9 @@ and open the template in the editor.
             
             function render( mtx ) {    
                 renderer.setLight( directionalLight );
-                renderer.drawScene( mtx, cube );
+                if (geoArray.length) {
+                    renderer.drawScene( mtx, geoArray );
+                }
             }
             
         </script>

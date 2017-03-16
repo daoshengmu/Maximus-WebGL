@@ -29,14 +29,14 @@ and open the template in the editor.
             attribute vec4 COLOR;
             attribute vec3 NORMAL;
             attribute vec2 UV;
-            
+
             varying vec4 outCOLOR0;
             varying vec3 outNORMAL;
             varying vec2 outUV;
-            
+
             uniform mat4 uMVMatrix;
             uniform mat4 uPMatrix;
-            
+
             void main(void) {
                 gl_Position = uPMatrix * uMVMatrix * vec4(POSITION, 1.0);
                 
@@ -71,7 +71,6 @@ and open the template in the editor.
             var worldMtx = mat4.create();
             var rotateAngle = 0;
             var cubeTexture = null;
-            var geometry = null;
             var geoArray = [];
             
             init();
@@ -88,8 +87,8 @@ and open the template in the editor.
                 renderer.initGL(canvas);
                 renderer.setClearColor( 0,0,0,1 );
                 
-                renderer.initShaders( document.getElementById("shader-vs")
-                                     , document.getElementById("shader-fs") );
+                renderer.initShaders( document.getElementById("shader-vs").innerHTML
+                                     , document.getElementById("shader-fs").innerHTML );
                 
                 var dir = vec3.fromValues( 0.0, 0.0, -1.0 );
                 directionalLight = new Maximus.DirectionalLight( [1.0,1.0,1.0], 1.0, dir );
@@ -101,7 +100,7 @@ and open the template in the editor.
                 const numQuad = 4;
 
                 for (var i = 0; i < numQuad; ++i) {
-                    geometry = new Maximus.Geometry();
+                    var geometry = new Maximus.Geometry();
                     geometry.init( renderer, redLambertMtr );
 
                     var sign = (1/numQuad) * 2;
@@ -175,8 +174,9 @@ and open the template in the editor.
             function render( mtx ) {    
                 //renderer.setLight( directionalLight );
 
-                if (geoArray.length)
+                if (geoArray.length) {
                     renderer.drawScene( mtx, geoArray );
+                }
             }
             
         </script>
