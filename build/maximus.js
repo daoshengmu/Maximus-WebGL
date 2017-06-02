@@ -521,6 +521,7 @@ Maximus.WebGLRenderer = function() {
     this.initShaders = function(vs, fs, debugShader) {
         var vertexShader = getShader(_gl, vs, "x-shader/x-vertex", debugShader);
         var fragmentShader = getShader(_gl, fs, "x-shader/x-fragment", debugShader);
+        var shaderProgram = _gl.createProgram();
 
         _gl.attachShader( shaderProgram, vertexShader );
         _gl.attachShader( shaderProgram, fragmentShader );
@@ -529,7 +530,6 @@ Maximus.WebGLRenderer = function() {
         _gl.deleteShader( vertexShader );
         _gl.deleteShader( fragmentShader );
         if ( !_gl.getProgramParameter( shaderProgram, _gl.LINK_STATUS ) ) {
-
             alert( "Could not initialise shaders" );
         }
 
