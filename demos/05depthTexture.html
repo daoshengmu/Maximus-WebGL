@@ -1,19 +1,22 @@
 <!--
-To change this template, choose Tools | Templates
-and open the template in the editor.
+Depth texture sample.
+The first pass: Render the depth value of geometries and generate the screen-size
+depth target
+The second pass: Render the depth target to screen
 -->
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Ellis' first WebGL demo</title>
+        <title>Ellis' depth texture WebGL demo</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
       
     </head>
     <body>
         <canvas id ="webGL-canvas" style="border: none;"
                 width="400" height="300" ></canvas>
-        <script src="../libs/gl-matrix-min.js"></script>
-        <script src="../build/maximus.js"></script>
+        <!-- <script type="text/javascript" src="https://benvanik.github.io/WebGL-Inspector/core/embed.js"></script> -->
+        <script type="text/javascript" src="../libs/gl-matrix-min.js"></script>
+        <script type="text/javascript" src="../build/maximus.js"></script>
         <script id="shader-vs" type="x-shader/x-vertex">
             attribute vec3 POSITION;
             attribute vec4 COLOR;
@@ -49,10 +52,26 @@ and open the template in the editor.
                 vec4 pixelColor;
                 
                 pixelColor.w = matDiffuse.w * outCOLOR0.w;
-                vec3 vNormal = normalize( outNORMAL );
-                float lightAmount = dot( vNormal, vec3(lightDir) );  
+                vec3 vNormal = normalize(outNORMAL);
+                float lightAmount = dot(vNormal, vec3(lightDir));  
                 
                 pixelColor.xyz = matDiffuse.xyz * lightColor.xyz * lightAmount;
+                gl_FragColor = pixelColor;
+            }
+        </script>
+        <script id="draw-depth-fs" type="x-shader/x-fragment">
+            precision mediump float;
+            
+            varying vec4 outCOLOR0;
+            varying vec3 outNORMAL;
+            varying vec2 outUV;
+
+            uniform sampler2D depthSampler;
+            
+            void main(void) {
+                vec4 pixelColor = texture2D(depthSampler, outUV);
+                pixelColor.xyz = pixelColor.xxx;
+                pixelColor.w = outCOLOR0.w;
                 gl_FragColor = pixelColor;
             }
         </script>
@@ -61,9 +80,14 @@ and open the template in the editor.
             var directionalLight;
             var sphere1;
             var sphere2;
-            var redLambertMtr;
+            var blackLambertMtr;
+            var depthMtr;
             var rotateAngle = 0;
+            var rttFramebuffer;
+            var rttTexture;
+            var depthTexture;
             var geoArray = [];
+            var geoArray1 = [];
             
             init();
             updateFrame();
@@ -72,16 +96,17 @@ and open the template in the editor.
                 var canvas = document.getElementById("webGL-canvas");
                 renderer = new Maximus.WebGLRenderer(); 
                 renderer.initGL(canvas);
-                renderer.setClearColor( 0,0,0,1 );
+                renderer.setClearColor( 1, 1, 1, 1 );
                 
-                renderer.initShaders( document.getElementById("shader-vs").innerHTML
-                                     , document.getElementById("shader-fs").innerHTML );
+                var shader = renderer.initShaders(
+                                    document.getElementById("shader-vs").innerHTML,
+                                    document.getElementById("shader-fs").innerHTML);
                 
                 var dir = vec3.fromValues( 0.0, 0.0, -1.0 );
-                directionalLight = new Maximus.DirectionalLight( [1.0,1.0,1.0], 1.0, dir );
-                redLambertMtr = new Maximus.LambertMaterial( [1.0, 0.0, 0.0, 1.0] );
+                directionalLight = new Maximus.DirectionalLight([1.0,1.0,1.0], 1.0, dir);
+                blackLambertMtr = new Maximus.LambertMaterial([0.0, 0.0, 0.0, 1.0], shader);
                 sphere1 = new Maximus.Sphere();
-                sphere1.init( renderer, redLambertMtr );
+                sphere1.init( renderer, blackLambertMtr );
 
                 var worldMtx1 = mat4.create();
                 mat4.identity( worldMtx1 );
@@ -91,7 +116,7 @@ and open the template in the editor.
                 geoArray.push( sphere1 );
 
                 sphere2 = new Maximus.Sphere();
-                sphere2.init( renderer, redLambertMtr );
+                sphere2.init( renderer, blackLambertMtr );
 
                 var worldMtx2 = mat4.create();
                 mat4.identity( worldMtx2 );
@@ -100,7 +125,84 @@ and open the template in the editor.
                 sphere2.setWorldMatrix( worldMtx2 );
                 geoArray.push( sphere2 );
 
-            };        
+                initTextureFramebuffer();
+                createGeometry();
+            };
+
+            function initTextureFramebuffer() {
+                var canvas = document.getElementById("webGL-canvas");
+                rttFramebuffer = renderer.createFramebuffer();
+                rttFramebuffer.width = canvas.width;
+                rttFramebuffer.height = canvas.height;
+
+                renderer.bindFramebuffer(rttFramebuffer);
+
+                rttTexture = renderer.createTexture(Maximus.Param.RGBAFormat,
+                                                    rttFramebuffer.width,
+                                                    rttFramebuffer.height,
+                                                    0, Maximus.Param.RGBAFormat,
+                                                    Maximus.Param.UNSIGNED_BYTE, null);
+                depthTexture = renderer.createTexture(Maximus.Param.DEPTH16Format,
+                                                      rttFramebuffer.width,
+                                                      rttFramebuffer.height,
+                                                      0, Maximus.Param.DEPTH_COMPONENTFormat,
+                                                      Maximus.Param.UNSIGNED_SHORT, null);
+                var renderbuffer = renderer.createRenderbuffer();
+                // renderer.bindRenderbuffer(renderbuffer, Maximus.Param.DEPTH16Format,
+                //                           rttFramebuffer.width, rttFramebuffer.height,
+                //                           Maximus.Param.COLOR_ATTACHMENT0, rttTexture,
+                //                           Maximus.Param.DEPTH_ATTACHMENT);
+                renderer.bindDepthbuffer(renderbuffer,
+                                         rttFramebuffer.width,
+                                         rttFramebuffer.height,
+                                         Maximus.Param.COLOR_ATTACHMENT0,
+                                         rttTexture, depthTexture);
+            }
+
+            function createGeometry() {
+                const numQuad = 1;
+                var shader = renderer.initShaders(
+                                    document.getElementById("shader-vs").innerHTML,
+                                    document.getElementById("draw-depth-fs").innerHTML);
+                depthMtr = new Maximus.LambertMaterial([1.0, 1.0, 1.0, 1.0],
+                                                        shader,
+                                                        depthTexture);
+
+                for (var i = 0; i < numQuad; ++i) {
+                    var geometry = new Maximus.Geometry();
+                    geometry.init(renderer, depthMtr);
+
+                    var sign = (1/numQuad) * 2;
+                    if (i < numQuad/2) {
+                        sign *= -1 * (numQuad/2 - i);
+                    } else {
+                        sign *= (i - numQuad/2);
+                    }
+
+                    const k = 0.0;
+
+                    var vertices = [
+                      -1.0 -k, -1.0/numQuad + sign - k, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, i * (1/numQuad),  
+                      1.0 -k, -1.0/numQuad + sign - k, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, i * (1/numQuad),
+                      1.0 + k, 1.0/numQuad + sign + k, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, i * (1/numQuad)+ (1/numQuad),
+                      -1.0 + k, 1.0/numQuad + sign + k, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, i * (1/numQuad) + (1/numQuad),
+                    ];
+
+                    geometry.createVertexBuffer( renderer, vertices, 12, 4 );
+
+                    var indices = [
+                        0, 1, 2, 0, 2, 3
+                    ];
+                    geometry.createIndexBuffer( renderer, indices, 1, 6 );
+
+                    var worldMtx = mat4.create();
+                    mat4.identity( worldMtx );
+                    mat4.scale( worldMtx, worldMtx, [2.0, 2.0, 2.0] );
+                    mat4.translate( worldMtx, worldMtx, [0.0, 1.0, -2.0] );
+                    geometry.setWorldMatrix(worldMtx);
+                    geoArray1.push( geometry );
+                }
+            }
           
             function updateFrame() {
                 requestAnimationFrame( updateFrame );
@@ -108,9 +210,19 @@ and open the template in the editor.
             }
             
             function render() {
-                renderer.setLight( directionalLight );
+                // render scene on depth texture
                 if (geoArray.length) {
-                    renderer.drawScene( geoArray );
+                 //   renderer.setLight(blackLambertMtr.getShader(), directionalLight);
+                    renderer.drawScene( geoArray, rttFramebuffer );
+                }
+
+                // Back to the default frame buffer
+                renderer.bindFramebuffer(null);
+
+                // Post effect
+                if (geoArray1.length) {
+                    renderer.setLight(depthMtr.getShader(), directionalLight);
+                    renderer.drawScene( geoArray1 );
                 }
             }
             

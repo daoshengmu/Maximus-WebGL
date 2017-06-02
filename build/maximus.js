@@ -6,6 +6,28 @@
 
 var Maximus = { REVISION: '1.1.1' };
 
+Maximus.Param = {
+  RGBAFormat: 1000,
+  DEPTH16Format: 1001,
+  DEPTH_COMPONENTFormat: 1002,
+
+  COLOR_ATTACHMENT0: 1010,
+  DEPTH_ATTACHMENT: 1011,
+
+  UNSIGNED_BYTE: 1020,
+  UNSIGNED_SHORT: 1021,
+};
+
+function paramToGL(gl, p) {
+  if (p == Maximus.Param.RGBAFormat) { return gl.RGBA; }
+  if (p == Maximus.Param.DEPTH16Format) { return gl.DEPTH_COMPONENT16; }
+  if (p == Maximus.Param.DEPTH_COMPONENTFormat) { return gl.DEPTH_COMPONENT; }
+  if (p == Maximus.Param.COLOR_ATTACHMENT0) { return gl.COLOR_ATTACHMENT0; }
+  if (p == Maximus.Param.DEPTH_ATTACHMENT) { return gl.DEPTH_ATTACHMENT; }
+  if (p == Maximus.Param.UNSIGNED_BYTE) { return gl.UNSIGNED_BYTE; }
+  if (p == Maximus.Param.UNSIGNED_SHORT) { return gl.UNSIGNED_SHORT; }
+}
+
 Maximus.Math = {
     
   degToRad: function( degrees ) {
@@ -74,9 +96,10 @@ Maximus.Vector3.prototype = {
   }
 };
 
-Maximus.LambertMaterial = function( color, texture ) {
+Maximus.LambertMaterial = function( color, shader, texture ) {
     var _color = color;
     var _texture = texture;
+    var _shader = shader;
     
     this.getColor = function() {
       return _color;  
@@ -88,6 +111,10 @@ Maximus.LambertMaterial = function( color, texture ) {
 
     this.setTexture = function(tex) {
       _texture = tex;
+    }
+
+    this.getShader = function() {
+      return _shader;
     }
 };
 
@@ -121,7 +148,7 @@ Maximus.Geometry = function() {
   this.init = function( renderer, mtr ) {
     _material = mtr;
   };
-  
+
   this.createVertexBuffer = function( renderer, vtxData, itemSize, numItems ) {
     var gl = renderer.getContext();
     
@@ -361,7 +388,7 @@ Maximus.Sphere = function() {
     this.getWorldMatrix = function() {
       return _worldMatrix;
     };
-}
+};
 
 Maximus.WebGLRenderer = function() {
     var _this = this;
@@ -369,9 +396,16 @@ Maximus.WebGLRenderer = function() {
 
     this.initGL = function(canvas) {
        try {
-           _gl = canvas.getContext("experimental-webgl")
-                  || canvas.getContext('webgl');
-           _this.setSize( canvas.width, canvas.height );
+          _gl = canvas.getContext('webgl2');
+          let isWebGL2 = !!_gl;
+          if (!isWebGL2) { // try to fallback to webgl 1
+              _gl = canvas.getContext('webgl') ||
+                    canvas.getContext('experimental-webgl');
+          }
+          if (!_gl) {
+              console.log('your browser does not support WebGL');
+          }
+          _this.setSize( canvas.width, canvas.height );
        }    
        catch(e) {
           console.log( "initGL exception:" + e );
@@ -389,13 +423,27 @@ Maximus.WebGLRenderer = function() {
         _gl.clearColor( r, g, b, a );
     };
 
-    this.createTexture = function( image ) {
+    this.createTexture = function( internalformat, width, height, border,
+                                   format, type, pixels ) {
       var texture = _gl.createTexture();
       _gl.bindTexture(_gl.TEXTURE_2D, texture);
-      _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, _gl.UNSIGNED_BYTE, image);
-      _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.LINEAR);
-      _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.LINEAR_MIPMAP_NEAREST);
-      _gl.generateMipmap(_gl.TEXTURE_2D);
+      // _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, _gl.UNSIGNED_BYTE, image);
+      _gl.texImage2D(_gl.TEXTURE_2D, 0, paramToGL(_gl, internalformat), width, height, border,
+                     paramToGL(_gl, format), paramToGL(_gl, type), pixels);
+      
+      if (format != Maximus.Param.DEPTH_COMPONENTFormat) {
+        _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.LINEAR);
+        _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.LINEAR);
+        _gl.generateMipmap(_gl.TEXTURE_2D);
+      } else {
+        _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.NEAREST);
+        _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.NEAREST);
+      }
+
+      _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_S, _gl.CLAMP_TO_EDGE);
+      // Prevents t-coordinate wrapping (repeating).
+      _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_T, _gl.CLAMP_TO_EDGE);
+
       _gl.bindTexture(_gl.TEXTURE_2D, null);
 
       return texture;
@@ -465,13 +513,12 @@ Maximus.WebGLRenderer = function() {
         return shader;
     }
 
-    var shaderProgram;
     this.initShaders = function( vs, fs ) {
 
         var vertexShader = getShader(_gl, vs, "x-shader/x-vertex");
         var fragmentShader = getShader(_gl, fs, "x-shader/x-fragment");
+        var shaderProgram = _gl.createProgram();
 
-        shaderProgram = _gl.createProgram();
         _gl.attachShader( shaderProgram, vertexShader );
         _gl.attachShader( shaderProgram, fragmentShader );
         _gl.linkProgram( shaderProgram );
@@ -502,6 +549,8 @@ Maximus.WebGLRenderer = function() {
         shaderProgram.lightDir = _gl.getUniformLocation(shaderProgram, "lightDir");
         shaderProgram.lightColor = _gl.getUniformLocation(shaderProgram, "lightColor");
         shaderProgram.uSampler = _gl.getUniformLocation( shaderProgram, "uSampler" );
+    
+        return shaderProgram;
     };
  
     this.setSize = function( width, height ) {
@@ -510,7 +559,7 @@ Maximus.WebGLRenderer = function() {
       mat4.perspective( pMatrix, 45, _gl.viewportWidth / _gl.viewportHeight, 0.1, 100.0 );
     }
 
-    this.setLight = function( directionalLight ) {
+    this.setLight = function( shaderProgram, directionalLight ) {
         var lightDir = directionalLight.getDirection();
         var lightColor = directionalLight.getColor();
         var intensity = directionalLight.getIntensity();
@@ -525,13 +574,56 @@ Maximus.WebGLRenderer = function() {
         return _gl;
     };
 
-    this.drawScene = function( drawList ) {
+    this.createFramebuffer = function() {
+      return _gl.createFramebuffer();
+    };
+
+    this.createRenderbuffer = function() {
+      return _gl.createRenderbuffer();
+    }
+
+    this.bindFramebuffer = function(framebuffer) {
+      _gl.bindFramebuffer(_gl.FRAMEBUFFER, framebuffer);
+    }
+
+    this.bindRenderbuffer = function(renderbuffer, internalformat, width, height,
+                                     texAttachment, rttTexture, bufAttachment) {
+      _gl.bindRenderbuffer(_gl.RENDERBUFFER, renderbuffer);
+      _gl.renderbufferStorage(_gl.RENDERBUFFER, paramToGL(_gl, internalformat), width, height);
+      _gl.framebufferTexture2D(_gl.FRAMEBUFFER, paramToGL(_gl, texAttachment), _gl.TEXTURE_2D,
+                               rttTexture, 0);
+      _gl.framebufferRenderbuffer(_gl.FRAMEBUFFER, paramToGL(_gl, bufAttachment), _gl.RENDERBUFFER, renderbuffer);
+
+      _gl.bindTexture(_gl.TEXTURE_2D, null);
+      _gl.bindRenderbuffer(_gl.RENDERBUFFER, null);
+      _gl.bindFramebuffer(_gl.FRAMEBUFFER, null);
+    };
+
+    this.bindDepthbuffer = function(renderbuffer, width, height,
+                                    texAttachment, rttTexture, depthTexture) {
+      _gl.bindRenderbuffer(_gl.RENDERBUFFER, renderbuffer);
+      _gl.framebufferTexture2D(_gl.FRAMEBUFFER, paramToGL(_gl, texAttachment), _gl.TEXTURE_2D,
+                               rttTexture, 0);
+      _gl.framebufferTexture2D(_gl.FRAMEBUFFER, _gl.DEPTH_ATTACHMENT, _gl.TEXTURE_2D,
+                               depthTexture, 0);
+      _gl.bindTexture(_gl.TEXTURE_2D, null);
+      _gl.bindRenderbuffer(_gl.RENDERBUFFER, null);
+      _gl.bindFramebuffer(_gl.FRAMEBUFFER, null);
+    };
+
+    this.drawScene = function( drawList, framebuffer ) {
+        if (framebuffer) {
+          this.bindFramebuffer(framebuffer);
+        }
+
         _gl.viewport( 0, 0, _gl.viewportWidth, _gl.viewportHeight );
         _gl.clear( _gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT );
 
         for (var i = 0; i < drawList.length; ++i ) {
           var geometry = drawList[i];
           var worldMtx = geometry.getWorldMatrix();
+          var shaderProgram = geometry.getMaterial().getShader();
+          _gl.useProgram(shaderProgram);
           mat4.multiply( mvMatrix, worldMtx, viewMtx );
 
           _gl.bindBuffer( _gl.ARRAY_BUFFER, geometry.getVertexBuffer() );
@@ -545,7 +637,7 @@ Maximus.WebGLRenderer = function() {
                           _gl.FLOAT, false, 4 * 12, (3 + 4 + 3) * 4 );
                      
           _gl.bindBuffer( _gl.ELEMENT_ARRAY_BUFFER, geometry.getIndexBuffer() );
-          _setMatrixUniform();
+          _setMatrixUniform(shaderProgram);
           _setMaterial( geometry.getMaterial() );
         
           _gl.drawElements( _gl.TRIANGLES, geometry.getIndexBuffer().numItems, _gl.UNSIGNED_SHORT, 0 );
@@ -557,20 +649,21 @@ Maximus.WebGLRenderer = function() {
     var viewMtx = mat4.create();
     //mat4.identity( viewMtx );  // This can be removed.
     
-    function _setMatrixUniform() {
+    function _setMatrixUniform(shaderProgram) {
         _gl.uniformMatrix4fv( shaderProgram.pMatrixUniform, false, pMatrix );
         _gl.uniformMatrix4fv( shaderProgram.mvMatrixUniform, false, mvMatrix );    
     }
     
-    function _setMaterial( material ) {
-        _gl.uniform4fv( shaderProgram.matDiffuse, material.getColor() );
+    function _setMaterial(material) {
+      var shaderProgram = material.getShader();
 
-        // Set texture
-        if (material.getTexture()) {  // FIXIT: workaround for texture mapping demo.
-          _gl.activeTexture( _gl.TEXTURE0 );
-          _gl.bindTexture( _gl.TEXTURE_2D, material.getTexture() );
-        }
-       // _gl.uniform1i( shaderProgram.uSampler, 0 ); // Need?
+      _gl.uniform4fv( shaderProgram.matDiffuse, material.getColor() );
+      // Set texture
+      if (material.getTexture()) {  // FIXIT: workaround for texture mapping demo.
+        _gl.activeTexture( _gl.TEXTURE0 );
+        _gl.bindTexture( _gl.TEXTURE_2D, material.getTexture() );
+      }
+     // _gl.uniform1i( shaderProgram.uSampler, 0 ); // Need?
     }
        
 };
