@@ -137,12 +137,12 @@ The second pass: Render the depth target to screen
 
                 renderer.bindFramebuffer(rttFramebuffer);
 
-                rttTexture = renderer.createTexture(Maximus.Param.RGBAFormat,
+                rttTexture = renderer.createTextureWithPixels(Maximus.Param.RGBAFormat,
                                                     rttFramebuffer.width,
                                                     rttFramebuffer.height,
                                                     0, Maximus.Param.RGBAFormat,
                                                     Maximus.Param.UNSIGNED_BYTE, null);
-                depthTexture = renderer.createTexture(Maximus.Param.DEPTH16Format,
+                depthTexture = renderer.createTextureWithPixels(Maximus.Param.DEPTH16Format,
                                                       rttFramebuffer.width,
                                                       rttFramebuffer.height,
                                                       0, Maximus.Param.DEPTH_COMPONENTFormat,

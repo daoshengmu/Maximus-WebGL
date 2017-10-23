@@ -74,12 +74,15 @@ and open the template in the editor.
                 renderer.initGL(canvas);
                 renderer.setClearColor( 0,0,0,1 );
                 
-                renderer.initShaders( document.getElementById("shader-vs").innerHTML
-                                     , document.getElementById("shader-fs").innerHTML );
+                var shaderProgram = renderer.initShaders(
+                    document.getElementById("shader-vs").innerHTML,
+                    document.getElementById("shader-fs").innerHTML );
                 
                 var dir = vec3.fromValues( 0.0, 0.0, -1.0 );
-                directionalLight = new Maximus.DirectionalLight( [1.0,1.0,1.0], 1.0, dir );
-                redLambertMtr = new Maximus.LambertMaterial( [1.0, 0.0, 0.0, 1.0] );
+                directionalLight = new Maximus.DirectionalLight([1.0,1.0,1.0], 1.0, dir);
+                redLambertMtr = new Maximus.LambertMaterial(
+                                [1.0, 0.0, 0.0, 1.0],
+                                shaderProgram);
                 cube = new Maximus.Cube();
                 cube.init( renderer, redLambertMtr );           
                 geoArray.push(cube);
@@ -100,7 +103,7 @@ and open the template in the editor.
             }
             
             function render() {    
-                renderer.setLight( directionalLight );
+                renderer.setLight(redLambertMtr.getShader(), directionalLight);
                 if (geoArray.length) {
                     renderer.drawScene(geoArray );
                 }

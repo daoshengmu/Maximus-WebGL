@@ -423,14 +423,13 @@ Maximus.WebGLRenderer = function() {
         _gl.clearColor( r, g, b, a );
     };
 
-    this.createTexture = function( internalformat, width, height, border,
-                                   format, type, pixels ) {
+    this.createTextureWithPixels = function(internalformat, width, height, border,
+                                    format, type, pixels) {
       var texture = _gl.createTexture();
       _gl.bindTexture(_gl.TEXTURE_2D, texture);
-      // _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, _gl.UNSIGNED_BYTE, image);
       _gl.texImage2D(_gl.TEXTURE_2D, 0, paramToGL(_gl, internalformat), width, height, border,
                      paramToGL(_gl, format), paramToGL(_gl, type), pixels);
-      
+
       if (format != Maximus.Param.DEPTH_COMPONENTFormat) {
         _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.LINEAR);
         _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.LINEAR);
@@ -440,6 +439,22 @@ Maximus.WebGLRenderer = function() {
         _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.NEAREST);
       }
 
+      _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_S, _gl.CLAMP_TO_EDGE);
+      // Prevents t-coordinate wrapping (repeating).
+      _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_T, _gl.CLAMP_TO_EDGE);
+
+      _gl.bindTexture(_gl.TEXTURE_2D, null);
+
+      return texture;
+    };
+
+    this.createTexture = function(image) {
+      var texture = _gl.createTexture();
+      _gl.bindTexture(_gl.TEXTURE_2D, texture);
+      _gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, _gl.UNSIGNED_BYTE, image);
+
+      _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.NEAREST);
+      _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.NEAREST);
       _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_S, _gl.CLAMP_TO_EDGE);
       // Prevents t-coordinate wrapping (repeating).
       _gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_T, _gl.CLAMP_TO_EDGE);

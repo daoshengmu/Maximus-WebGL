@@ -68,6 +68,7 @@ and open the template in the editor.
             var directionalLight;
             var cube;
             var redLambertMtr;
+            var shaderProgram;
             var rotateAngle = 0;
             var cubeTexture = null;
             var geoArray = [];
@@ -86,8 +87,9 @@ and open the template in the editor.
                 renderer.initGL(canvas);
                 renderer.setClearColor( 0,0,0,1 );
                 
-                renderer.initShaders( document.getElementById("shader-vs").innerHTML
-                                     , document.getElementById("shader-fs").innerHTML );
+                shaderProgram = renderer.initShaders(
+                                document.getElementById("shader-vs").innerHTML,
+                                document.getElementById("shader-fs").innerHTML );
                 
                 var dir = vec3.fromValues( 0.0, 0.0, -1.0 );
                 directionalLight = new Maximus.DirectionalLight( [1.0,1.0,1.0], 1.0, dir );
@@ -147,7 +149,10 @@ and open the template in the editor.
                 // var video = document.getElementById("myVideo");
                // cubeTexture = renderer.genElementTexture(frame);
                 cubeTexture = renderer.createTexture(img); 
-                redLambertMtr = new Maximus.LambertMaterial( [1.0, 1.0, 1.0, 1.0], cubeTexture );
+                redLambertMtr = new Maximus.LambertMaterial(
+                                    [1.0, 1.0, 1.0, 1.0],
+                                    shaderProgram,
+                                    cubeTexture);
                 createGeometry();
             }
           
