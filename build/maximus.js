@@ -477,7 +477,7 @@ Maximus.WebGLRenderer = function() {
       ext.texImage2D(_gl.TEXTURE_2D, 0, domElement);
     }
 
-    function getShader( context, code, type ) {
+    function getShader(context, code, type, debugShader) {
         // var shaderScript = id;
         // if ( !shaderScript ) {
         //     return null;
@@ -510,14 +510,17 @@ Maximus.WebGLRenderer = function() {
             return null;
         }
 
+        if (debugShader) {
+          var src = context.getExtension('WEBGL_debug_shaders').getTranslatedShaderSource(shader);
+          console.log(src);
+        }
+
         return shader;
     }
 
-    this.initShaders = function( vs, fs ) {
-
-        var vertexShader = getShader(_gl, vs, "x-shader/x-vertex");
-        var fragmentShader = getShader(_gl, fs, "x-shader/x-fragment");
-        var shaderProgram = _gl.createProgram();
+    this.initShaders = function(vs, fs, debugShader) {
+        var vertexShader = getShader(_gl, vs, "x-shader/x-vertex", debugShader);
+        var fragmentShader = getShader(_gl, fs, "x-shader/x-fragment", debugShader);
 
         _gl.attachShader( shaderProgram, vertexShader );
         _gl.attachShader( shaderProgram, fragmentShader );
