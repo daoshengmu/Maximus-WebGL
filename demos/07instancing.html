@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Instancing WebGL demo</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+    <body>
+        <canvas id ="webGL-canvas" style="border: none;"
+                width="400" height="300" ></canvas>
+        <script type="text/javascript" src="../libs/gl-matrix-min.js"></script>
+        <script type="text/javascript" src="../build/maximus.js"></script>
+        <script id="shader-vs" type="x-shader/x-vertex">
+            attribute vec3 POSITION;
+            attribute vec4 COLOR;
+            attribute vec3 NORMAL;
+            attribute vec2 UV;
+            attribute vec3 aInstancedOffset;
+            attribute vec4 aInstancedColor;
+
+            varying vec4 outCOLOR0;
+            varying vec3 outNORMAL;
+            varying vec2 outUV;
+
+            uniform mat4 uMVMatrix;
+            uniform mat4 uPMatrix;
+
+            void main(void) {
+                vec3 vertexPos = POSITION;
+                vertexPos += aInstancedOffset;
+                gl_Position = uPMatrix * uMVMatrix * vec4(vertexPos, 1.0);
+
+                outCOLOR0 = COLOR * aInstancedColor;
+                outNORMAL = (uMVMatrix * vec4( NORMAL, 0.0 )).xyz;
+                outUV = UV;
+            }
+        </script>
+        <script id="shader-fs" type="x-shader/x-fragment">
+            precision mediump float;
+
+            varying vec4 outCOLOR0;
+            varying vec3 outNORMAL;
+            varying vec2 outUV;
+            uniform vec4 matDiffuse;
+            uniform vec4 lightDir;
+            uniform vec4 lightColor;
+
+            void main(void) {
+                vec4 pixelColor;
+
+                pixelColor.w = matDiffuse.w * outCOLOR0.w;
+                vec3 vNormal = normalize(outNORMAL);
+                float lightAmount = dot(vNormal, vec3(lightDir));
+
+                pixelColor.xyz = outCOLOR0.xyz * matDiffuse.xyz *
+                                 lightColor.xyz * lightAmount;
+                gl_FragColor = pixelColor;
+            }
+        </script>
+        <script>
+            var renderer;
+            var directionalLight;
+            var lambertMtr;
+            var geoArray = [];
+            var instanceCount = 0;
+            var instancingBuffers = [];
+            var gl;
+            var shader;
+
+            init();
+            updateFrame();
+
+            function init() {
+                var canvas = document.getElementById("webGL-canvas");
+                renderer = new Maximus.WebGLRenderer();
+                renderer.initGL(canvas, "webgl2");
+                renderer.setClearColor(0, 0, 0, 1);
+                gl = renderer.getContext();
+
+                shader = renderer.initShaders(
+                                    document.getElementById("shader-vs").innerHTML,
+                                    document.getElementById("shader-fs").innerHTML);
+                shader.offsetLocation = gl.getAttribLocation(shader,
+                                            "aInstancedOffset");
+                gl.enableVertexAttribArray(shader.offsetLocation);
+                shader.colorLocation = gl.getAttribLocation(shader,
+                                            "aInstancedColor");
+                gl.enableVertexAttribArray(shader.colorLocation);
+
+                var dir = vec3.fromValues(0.0, 0.0, -1.0);
+                directionalLight = new Maximus.DirectionalLight([1.0, 1.0, 1.0], 1.0, dir);
+                lambertMtr = new Maximus.LambertMaterial([1.0, 1.0, 1.0, 1.0], shader);
+                var sphere1 = new Maximus.Sphere();
+                sphere1.init(renderer, lambertMtr);
+
+                var worldMtx = mat4.create();
+                mat4.identity( worldMtx );
+                mat4.translate( worldMtx, worldMtx,
+                                [-1.0, -1.0, -7.0] );
+                sphere1.setWorldMatrix( worldMtx );
+                geoArray.push( sphere1 );
+
+                sphere2 = new Maximus.Sphere();
+                sphere2.init(renderer, lambertMtr);
+
+                worldMtx = mat4.create();
+                mat4.identity( worldMtx );
+                mat4.translate( worldMtx, worldMtx,
+                                [-3.0, -1.5, -7.0] );
+                sphere2.setWorldMatrix( worldMtx );
+                geoArray.push( sphere2 );
+
+                initInstancingBuffers(2, 2);
+            }
+
+            function initInstancingBuffers(dimensionCount, offset) {
+                var offsets = [];
+                var colors = [];
+
+                // Generate a three dmensional grid for our instanced positions
+                var dim = dimensionCount;
+                instanceCount = 0;
+                for (var x = 0; x < dim; x++) {
+                    for (var y = 0; y < dim; y++) {
+                        offsets.push((x + Math.random()) * offset, (y + Math.random()) * offset, 0);
+                        colors.push(0.75 + Math.random()*0.25, 0.75 + Math.random()*0.25, 0.75 + Math.random()*0.25, 1.0);
+                        instanceCount++;
+                    }
+                }
+
+                // Setup instacing buffers for position offsets and color
+                var instancingOffsets = renderer.createInstancingbuffer(
+                    new Float32Array(offsets), 3, shader.offsetLocation);
+                instancingBuffers.push(instancingOffsets);
+                instancingColors = renderer.createInstancingbuffer(
+                    new Float32Array(colors), 4, shader.colorLocation);
+                instancingBuffers.push(instancingColors);
+            }
+
+            function updateFrame() {
+                requestAnimationFrame( updateFrame );
+                render();
+            }
+
+            function render() {
+                // render scene on depth texture
+                if (geoArray.length) {
+                   renderer.setLight(lambertMtr.getShader(), directionalLight);
+                   renderer.drawSceneInstanced(geoArray, shader,
+                        instancingBuffers, instanceCount);
+                }
+            }
+        </script>
+    </body>
+</html>
