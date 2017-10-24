@@ -544,7 +544,8 @@ Maximus.WebGLRenderer = function() {
 
         _gl.attachShader( shaderProgram, vertexShader );
         _gl.attachShader( shaderProgram, fragmentShader );
-        _gl.linkProgram( shaderProgram );      
+        _gl.linkProgram( shaderProgram );
+        //_gl.detachShader(shaderProgram, vertexShader);
         _gl.deleteShader( vertexShader );
         _gl.deleteShader( fragmentShader );
         if ( !_gl.getProgramParameter( shaderProgram, _gl.LINK_STATUS ) ) {
@@ -684,6 +685,7 @@ Maximus.WebGLRenderer = function() {
         var geometry = drawList[i];
         var worldMtx = geometry.getWorldMatrix();
         var shaderProgram = geometry.getMaterial().getShader();
+
         _gl.useProgram(shaderProgram);
         mat4.multiply( mvMatrix, worldMtx, viewMtx );
 
@@ -700,6 +702,52 @@ Maximus.WebGLRenderer = function() {
         _gl.bindBuffer( _gl.ELEMENT_ARRAY_BUFFER, geometry.getIndexBuffer() );
         _setMatrixUniform(shaderProgram);
         _setMaterial( geometry.getMaterial() );
+
+        // Instancing data
+        for (var j = 0; j < instancingBuffers.length; ++j) {
+          let instancing = instancingBuffers[j];
+          gl.bindBuffer(gl.ARRAY_BUFFER, instancing);
+          gl.vertexAttribPointer(instancing.location, instancing.itemSize, gl.FLOAT, false,
+            instancing.itemSize * instancing.numItems, 0);
+          gl.vertexAttribDivisor(instancing.location, 1);
+        }
+
+        gl.drawElementsInstanced(_gl.TRIANGLES, geometry.getIndexBuffer().numItems,
+            _gl.UNSIGNED_SHORT, 0, instanceCount);
+      }
+    };
+
+    this.drawSceneInstancedWithUBO = function(drawList, shaderProgram,
+                                       instancingBuffers, instanceCount,
+                                       uniformBuffer, uboFloat) {
+      _gl.viewport( 0, 0, _gl.viewportWidth, _gl.viewportHeight );
+      _gl.clear( _gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT );
+
+      for (var i = 0; i < drawList.length; ++i) {
+        var geometry = drawList[i];
+        var worldMtx = geometry.getWorldMatrix();
+        var shaderProgram = geometry.getMaterial().getShader();
+
+        _gl.useProgram(shaderProgram);
+        mat4.multiply( mvMatrix, worldMtx, viewMtx );
+
+        _gl.bindBuffer( _gl.ARRAY_BUFFER, geometry.getVertexBuffer() );
+        _gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3,
+                        _gl.FLOAT, false, 4 * 12, 0 );
+        _gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, 4,
+                        _gl.FLOAT, false, 4 * 12, 3 * 4 );
+        _gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute, 3,
+                        _gl.FLOAT, false, 4 * 12, (3 + 4) * 4 );
+        _gl.vertexAttribPointer(shaderProgram.vertexUVAttribute, 2,
+                        _gl.FLOAT, false, 4 * 12, (3 + 4 + 3) * 4 );
+
+        _gl.bindBuffer( _gl.ELEMENT_ARRAY_BUFFER, geometry.getIndexBuffer() );
+        _setMaterial( geometry.getMaterial() );
+
+        uboFloat.set(mvMatrix, 0);
+        uboFloat.set(pMatrix, mvMatrix.length);
+        gl.bindBuffer(gl.UNIFORM_BUFFER, uniformBuffer);
+        gl.bufferData(gl.UNIFORM_BUFFER, uboFloat, gl.DYNAMIC_DRAW);
 
         // Instancing data
         for (var j = 0; j < instancingBuffers.length; ++j) {
