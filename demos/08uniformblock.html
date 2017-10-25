@@ -69,6 +69,7 @@
             var instancingBuffers = [];
             var gl;
             var shader;
+            var sphere1, sphere2;
             var blockIndex;
             var blockSize;
             var uniformBuffer;
@@ -107,7 +108,7 @@
                 var dir = vec3.fromValues(0.0, 0.0, -1.0);
                 directionalLight = new Maximus.DirectionalLight([1.0, 1.0, 1.0], 1.0, dir);
                 lambertMtr = new Maximus.LambertMaterial([1.0, 1.0, 1.0, 1.0], shader);
-                var sphere1 = new Maximus.Sphere();
+                sphere1 = new Maximus.Sphere();
                 sphere1.init(renderer, lambertMtr);
 
                 var worldMtx = mat4.create();
@@ -155,12 +156,19 @@
             }
 
             function updateFrame() {
-                requestAnimationFrame( updateFrame );
+                var rotateAngle = 1;
+
+                requestAnimationFrame(updateFrame);
+                var worldMtx = sphere1.getWorldMatrix();
+                mat4.rotateY(worldMtx, worldMtx, Maximus.Math.degToRad(rotateAngle));
+
+                rotateAngle = -1;
+                worldMtx = sphere2.getWorldMatrix();
+                mat4.rotateY(worldMtx, worldMtx, Maximus.Math.degToRad(rotateAngle));
                 render();
             }
 
             function render() {
-                // render scene on depth texture
                 if (geoArray.length) {
                    renderer.setLight(lambertMtr.getShader(), directionalLight);
                    renderer.drawSceneInstancedWithUBO(geoArray, shader,

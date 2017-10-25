@@ -545,7 +545,6 @@ Maximus.WebGLRenderer = function() {
         _gl.attachShader( shaderProgram, vertexShader );
         _gl.attachShader( shaderProgram, fragmentShader );
         _gl.linkProgram( shaderProgram );
-        //_gl.detachShader(shaderProgram, vertexShader);
         _gl.deleteShader( vertexShader );
         _gl.deleteShader( fragmentShader );
         if ( !_gl.getProgramParameter( shaderProgram, _gl.LINK_STATUS ) ) {
