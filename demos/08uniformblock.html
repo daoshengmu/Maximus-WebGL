@@ -12,8 +12,8 @@
         <script id="shader-vs" type="x-shader/x-vertex">#version 300 es
             uniform TransformMatrix
             {
-                uniform mat4 uMVMatrix;
-                uniform mat4 uPMatrix;
+                mat4 uMVMatrix;
+                mat4 uPMatrix;
             };
 
             in vec3 POSITION;
